@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upgrade to Premium</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      href="https://cdn.jsdelivr.net/npm/remixicon@4.3.0/fonts/remixicon.css"
+      rel="stylesheet"
+    />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <link rel="stylesheet" href="{% static 'styles.css' %}" />
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen flex flex-col items-center font-[Inter]">
+    <nav>
+        <div class="nav__header">
+          <div class="nav__logo">
+            <a href="{% url 'chat:home' %}"><span>YC</span>Matters</a>
+          </div>
+          <div class="nav__menu__btn" id="menu-btn">
+            <span><i class="ri-menu-line"></i></span>
+          </div>
+        </div>
+        <ul class="nav__links" id="nav-links">
+          <li><a href="{% url 'chat:home' %}">Home</a></li>
+          <li><a href="{% url 'chat:about' %}">About Us</a></li>
+          <li><a href="{% url 'chat:contact' %}">Contact</a></li>
+          {% if user.is_authenticated %}
+              <li><a href="{% url 'chat:idea_list' %}">My Ideas</a></li>
+              <li><a href="{% url 'chat:initiate_payment' %}">Pricing</a></li>
+          {% endif %}
+          <li class="mobile-login">
+            {% if user.is_authenticated %}
+              <a href="{% url 'chat:logout' %}">Logout</a>
+            {% else %}
+              <a href="{% url 'chat:sign_in_or_sign_up' %}">Login</a>
+            {% endif %}
+          </li>
+        </ul>
+        <div class="nav__btns nav__btns-auth">
+          {% if user.is_authenticated %}
+          <div class="dropdown">
+            <button class="btn sign__in dropdown-toggle">{{ user.username }}</button>
+            <div class="dropdown-menu">
+              <a href="{% url 'chat:logout' %}">Logout</a>
+            </div>
+          </div>
+          {% else %}
+          <a href="{% url 'chat:sign_in_or_sign_up' %}">
+            <button class="btn sign__in">Log In</button>
+          </a>
+          {% endif %}
+        </div>
+      </nav>
+      <div x-data="{ hover: false }" 
+      class="bg-white p-8 rounded-2xl shadow-lg max-w-md w-full transform transition-all duration-300 mt-[100px] sm:mt-8"
+      :class="{ 'scale-105': hover }"
+      @mouseenter="hover = true"
+      @mouseleave="hover = false">
+        <h1 class="text-3xl font-bold text-center mb-8 text-indigo-900">Upgrade to Premium</h1>
+        <div class="space-y-4">
+            <div class="flex items-center bg-indigo-50 p-3 rounded-lg transition-all duration-300 hover:bg-indigo-100">
+                <svg class="h-6 w-6 text-indigo-600 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                </svg>
+                <span class="text-indigo-900">Access to exclusive features</span>
+            </div>
+            <div class="flex items-center bg-indigo-50 p-3 rounded-lg transition-all duration-300 hover:bg-indigo-100">
+                <svg class="h-6 w-6 text-indigo-600 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                </svg>
+                <span class="text-indigo-900">Unlimited Access</span>
+            </div>
+            <div class="flex items-center bg-indigo-50 p-3 rounded-lg transition-all duration-300 hover:bg-indigo-100">
+                <svg class="h-6 w-6 text-indigo-600 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                </svg>
+                <span class="text-indigo-900">Customizable Experience</span>
+            </div>
+            <div class="flex items-center bg-indigo-50 p-3 rounded-lg transition-all duration-300 hover:bg-indigo-100">
+                <svg class="h-6 w-6 text-indigo-600 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                </svg>
+                <span class="text-indigo-900">Access to Beta Features</span>
+            </div>
+            <div class="flex items-center bg-indigo-50 p-3 rounded-lg transition-all duration-300 hover:bg-indigo-100">
+                <svg class="h-6 w-6 text-indigo-600 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                </svg>
+                <span class="text-indigo-900">Community Access</span>
+            </div>
+        </div>
+        <div class="mt-8">
+            <p class="text-center text-3xl font-bold text-indigo-900 mb-6">₹499 <span class="text-sm font-normal text-indigo-600">/ month</span></p>
+            <form method="post" action="{% url 'chat:initiate_payment' %}">
+                {% csrf_token %}
+                <button type="submit" class="w-full bg-indigo-600 text-white py-3 px-4 rounded-xl hover:bg-indigo-700 transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-50">
+                    Upgrade Now
+                </button>
+            </form>
+        </div>
+    </div>
+    <script src="{% static 'main.js' %}"></script>
+</body>
+</html>

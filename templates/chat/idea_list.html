@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@4.3.0/fonts/remixicon.css" rel="stylesheet" />
+    <link rel="stylesheet" href="{% static 'styles.css' %}" />
+    <link href="css/fontawesome.min.css" rel="stylesheet" type="text/css" />
+    <title>YCMatters | My Ideas</title>
+    <style>
+        .idea-list-container {
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #ffffff;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .idea-list-title {
+            text-align: center;
+            color: #2c3e50;
+            font-size: 2.5rem;
+            margin-bottom: 30px;
+        }
+        .idea-list {
+            list-style-type: none;
+            padding: 0;
+        }
+        .idea-item {
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            padding: 20px;
+            transition: all 0.3s ease;
+        }
+        .idea-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+        }
+        .idea-link {
+            color: #3498db;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.1rem;
+            display: block;
+            margin-bottom: 10px;
+        }
+        .idea-date {
+            color: #7f8c8d;
+            font-size: 0.9rem;
+        }
+        .no-ideas {
+            text-align: center;
+            color: #7f8c8d;
+            font-style: italic;
+        }
+        @media (max-width: 768px) {
+            .nav__header {
+                padding: 1rem;
+                width: 100%;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                background-color: var(--primary-color);
+                margin-top: -55px;
+            }
+            .nav__links.open {
+                display: flex; /* Show when 'open' class is added */
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                margin-top: -60px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <div class="nav__header">
+            <div class="nav__logo">
+                <a href="{% url 'chat:home' %}"><span>YC</span>Matters</a>
+            </div>
+            <div class="nav__menu__btn" id="menu-btn">
+                <span><i class="ri-menu-line"></i></span>
+            </div>
+        </div>
+        <ul class="nav__links" id="nav-links">
+            <li><a href="{% url 'chat:home' %}">Home</a></li>
+            <li><a href="{% url 'chat:about' %}">About Us</a></li>
+            <li><a href="{% url 'chat:contact' %}">Contact</a></li>
+            {% if user.is_authenticated %}
+                <li><a href="{% url 'chat:idea_list' %}">My Ideas</a></li>
+            {% endif %}
+            <li class="mobile-login">
+                {% if user.is_authenticated %}
+                    <a href="{% url 'chat:logout' %}">Logout</a>
+                {% else %}
+                    <a href="{% url 'chat:sign_in_or_sign_up' %}">Login</a>
+                {% endif %}
+            </li>
+        </ul>
+        <div class="nav__btns nav__btns-auth">
+            {% if user.is_authenticated %}
+            <div class="dropdown">
+                <button class="btn sign__in dropdown-toggle">{{ user.username }}</button>
+                <div class="dropdown-menu">
+                    <a href="{% url 'chat:logout' %}">Logout</a>
+                </div>
+            </div>
+            {% else %}
+            <a href="{% url 'chat:sign_in_or_sign_up' %}">
+                <button class="btn sign__in">Log In</button>
+            </a>
+            {% endif %}
+        </div>
+    </nav>
+
+    <div class="idea-list-container">
+        <h1 class="idea-list-title">Your Startup Ideas</h1>
+        <ul class="idea-list">
+        {% for startup_idea in ideas %}
+            <li class="idea-item">
+                <a href="{% url 'chat:idea_detail' startup_idea.id %}" class="idea-link">
+                    {{ startup_idea.idea|truncatechars:100 }}
+                </a>
+                <span class="idea-date">{{ startup_idea.created_at|date:"F d, Y" }}</span>
+            </li>
+        {% empty %}
+            <li class="no-ideas">You haven't submitted any ideas yet.</li>
+        {% endfor %}
+        </ul>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://unpkg.com/scrollreveal"></script>
+    <script src="{% static 'main.js' %}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const dropdownToggle = document.querySelector('.dropdown-toggle');
+            const dropdownMenu = document.querySelector('.dropdown-menu');
+
+            dropdownToggle.addEventListener('click', function(e) {
+                e.stopPropagation();
+                this.parentElement.classList.toggle('active');
+            });
+
+            window.addEventListener('click', function() {
+                const dropdowns = document.querySelectorAll('.dropdown');
+                dropdowns.forEach(dropdown => {
+                    if (dropdown.classList.contains('active')) {
+                        dropdown.classList.remove('active');
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

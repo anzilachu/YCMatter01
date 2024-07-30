@@ -1,0 +1,356 @@
+body {
+    font-family: 'Roboto', sans-serif;
+    background-color: #000000;
+    color: #ffffff;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    overflow: hidden;
+}
+
+.container {
+    display: flex;
+    width: 90%;
+    max-width: 1200px;
+    height: 90vh;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.left-section {
+    width: 45%;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.1);
+    border-right: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.voice-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 20px;
+}
+
+.voice-button {
+    position: relative;
+    width: 150px;
+    height: 150px;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+}
+
+#state-image,
+#talking-gif {
+    position: absolute;
+    width: 150%;
+    height: 100%;
+    border-radius: 10%;
+}
+
+.controls {
+    margin-top: 20px;
+}
+
+.controls button {
+    background-color: rgba(255, 255, 255, 0.1);
+    border: none;
+    border-radius: 50%;
+    padding: 10px;
+    cursor: pointer;
+    font-size: 24px;
+    color: #fff;
+    margin: 0 5px;
+}
+
+.timer-container {
+    margin-top: auto; /* Pushes the timer to the bottom */
+    color: wheat;
+}
+
+.timer-container h2 {
+    font-size: 24px;
+    font-weight: 700;
+}
+
+.instructions {
+    width: 100%;
+    background: rgba(0, 0, 0, 0.354);
+    padding: 20px;
+    margin-top: 20px;
+}
+
+.instructions h2 {
+    font-size: 24px;
+    font-weight: 700;
+    color: wheat;
+    margin-bottom: 10px;
+}
+
+.instructions ul {
+    list-style: none;
+    padding: 0;
+}
+
+.instructions li {
+    margin-bottom: 10px;
+    font-size: 16px;
+    color: #ffffff;
+}
+
+.response-container {
+    width: 65%;
+    padding: 20px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.message {
+    margin-bottom: 10px;
+}
+
+.user-message p,
+.ai-message p,
+.error-message p {
+    margin: 0;
+    padding: 10px;
+    border-radius: 10px;
+}
+
+.user-message p {
+    background-color: #444445;
+    color: #fff;
+    align-self: flex-end;
+}
+
+.ai-message p {
+    background-color: #ffffff;
+    color: #000000;
+    align-self: flex-start;
+}
+
+.error-message p {
+    background-color: #f44336;
+    color: #fff;
+    align-self: flex-start;
+}
+
+/* Exit button */
+#exit-link {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+}
+
+#exit-btn {
+    background-color: rgba(255, 255, 255, 0.1);
+    border: none;
+    border-radius: 50%;
+    padding: 10px;
+    cursor: pointer;
+    font-size: 24px;
+    color: #fff;
+    display: block;
+}
+
+/* Feedback Modal */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.5);
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    background-color: #0e0e0e;
+    margin: auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%;
+    max-width: 500px;
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.modal-content h2 {
+    color: #fff;
+}
+
+#feedback-input {
+    width: 100%;
+    height: 100px;
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    margin-bottom: 10px;
+    color: #000;
+}
+
+.submit-btn,
+.close-btn {
+    background-color: #2196f3;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-top: 10px;
+}
+
+.close-btn {
+    background-color: #f44336;
+}
+
+/* Animation for the listening indicator */
+#state-image.listening-animation {
+    animation: listening 1s infinite;
+}
+
+@keyframes listening {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+}
+
+.speak-animation {
+    margin-top: 10px;
+    font-size: 24px;
+    font-weight: bold;
+    color: #fff200;
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.7;
+        transform: scale(1.1);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+.mobile-instructions {
+    display: none;
+    color: #ffffff;
+    text-align: center;
+    margin-top: 10px;
+}
+
+@media screen and (max-width: 768px) {
+    .container {
+        flex-direction: column;
+        width: 95%;
+        height: 95vh;
+    }
+    .instructions {
+        display: none;
+    }
+
+    .mobile-instructions {
+        display: block;
+    }
+
+    .left-section {
+        width: 100%;
+        border-right: none;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+        padding: 10px;
+    }
+
+    .response-container {
+        width: 100%;
+        height: 50vh;
+    }
+
+    .voice-button {
+        width: 100px;
+        height: 100px;
+    }
+
+    .instructions {
+        font-size: 14px;
+    }
+
+    .instructions h2 {
+        font-size: 18px;
+    }
+
+    .timer-container h2 {
+        font-size: 18px;
+    }
+
+    .controls button {
+        font-size: 18px;
+        padding: 8px;
+    }
+
+    .speak-animation {
+        font-size: 18px;
+    }
+    .ai-message p {
+        background-color: #ffffff;
+        color: #000000;
+        align-self: flex-start;
+        margin-right: 10px;
+    }
+    #exit-btn {
+        display: none;
+    }
+}
+
+@media screen and (max-width: 480px) {
+    .voice-button {
+        width: 80px;
+        height: 80px;
+    }
+    .mobile-instructions {
+        font-size: 14px;
+    }
+
+    .timer-container h2 {
+        font-size: 16px;
+    }
+
+    .controls button {
+        font-size: 16px;
+        padding: 6px;
+    }
+
+    .speak-animation {
+        font-size: 16px;
+    }
+    #exit-btn {
+        display: none;
+    }
+}

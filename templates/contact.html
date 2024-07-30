@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link
+      href="https://cdn.jsdelivr.net/npm/remixicon@4.3.0/fonts/remixicon.css"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="{% static 'styles.css' %}" />
+    <link href="css/fontawesome.min.css" rel="stylesheet" type="text/css" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <title>Contact | YCMatters </title>
+</head>
+<body>
+    <nav>
+        <div class="nav__header">
+          <div class="nav__logo">
+            <a href="{% url 'chat:home' %}"><span>YC</span>Matters</a>
+          </div>
+          <div class="nav__menu__btn" id="menu-btn">
+            <span><i class="ri-menu-line"></i></span>
+          </div>
+        </div>
+        <ul class="nav__links" id="nav-links">
+          <li><a href="{% url 'chat:home' %}">Home</a></li>
+          <li><a href="{% url 'chat:about' %}">About Us</a></li>
+          <li><a href="{% url 'chat:contact' %}">Contact</a></li>
+          {% if user.is_authenticated %}
+            <li><a href="{% url 'chat:idea_list' %}">My Ideas</a></li>
+            <li><a href="{% url 'chat:initiate_payment' %}">Pricing</a></li>
+        {% endif %}
+          <li class="mobile-login">
+            {% if user.is_authenticated %}
+              <a href="{% url 'chat:logout' %}">Logout</a>
+            {% else %}
+              <a href="{% url 'chat:sign_in_or_sign_up' %}">Login</a>
+            {% endif %}
+          </li>
+        </ul>
+        <div class="nav__btns nav__btns-auth">
+        {% if user.is_authenticated %}
+        <div class="dropdown">
+          <button class="btn sign__in dropdown-toggle">{{ user.username }}</button>
+          <div class="dropdown-menu">
+            <a href="{% url 'chat:logout' %}">Logout</a>
+          </div>
+        </div>
+        {% else %}
+        <a href="{% url 'chat:sign_in_or_sign_up' %}">
+          <button class="btn sign__in">Log In</button>
+        </a>
+        {% endif %}
+      </div>
+      </nav>
+    <style>
+
+        .container {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            max-width: 800px;
+            width: 90%;
+            display: block;
+            margin: 0 auto;
+
+        }
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            font-weight: 700;
+            color: #FF6600;
+        }
+        p {
+            font-size: 1.2em;
+            line-height: 1.6;
+            margin-bottom: 30px;
+        }
+        .contact-form {
+            text-align: left;
+            margin-top: 30px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            font-size: 1.1em;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+        .form-group input, .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            font-size: 1em;
+            box-sizing: border-box;
+        }
+        .form-group textarea {
+            height: 120px;
+            resize: none;
+        }
+        .form-group button {
+            background-color: #FF6600;
+            color: #fff;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .form-group button:hover {
+            background-color: #FF6600;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 40px;
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+
+            display: block;
+            margin: 0 auto;
+
+        }
+        #yc_contact {
+            padding-top: 40px;
+        }
+        }
+    </style>
+    <section id="yc_contact">
+        <div class="container">
+            <h1>Contact YCMatters</h1>
+            <p>Have questions or feedback? Feel free to reach out to us!</p>
+            <div class="contact-form">
+                <form id="contact-form">
+                    <div class="form-group">
+                        <label for="name">Your Name</label>
+                        <input type="text" id="name" name="name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Your Email</label>
+                        <input type="email" id="email" name="email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="message">Your Message</label>
+                        <textarea id="message" name="message" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <button type="submit">Send Message</button>
+                    </div>
+                </form>
+                <p id="form-message" style="display: none;"></p>
+            </div>
+        </div>
+    </section>
+    <script>
+    document.getElementById('contact-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        const name = document.getElementById('name').value;
+        const email = document.getElementById('email').value;
+        const message = document.getElementById('message').value;
+        const formMessage = document.getElementById('form-message');
+
+        fetch('{% url "chat:contact_form" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: new URLSearchParams({
+                'name': name,
+                'email': email,
+                'message': message
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                formMessage.style.display = 'block';
+                formMessage.style.color = 'green';
+                formMessage.textContent = 'Your message has been sent successfully!';
+                document.getElementById('contact-form').reset(); // Clear the form fields
+            } else {
+                formMessage.style.display = 'block';
+                formMessage.style.color = 'red';
+                formMessage.textContent = 'Failed to send message. Please try again.';
+            }
+        })
+        .catch(error => {
+            formMessage.style.display = 'block';
+            formMessage.style.color = 'red';
+            formMessage.textContent = 'An error occurred. Please try again.';
+        });
+    });
+    </script>
+      <script>
+        document.addEventListener('DOMContentLoaded', function() {
+        const dropdownToggle = document.querySelector('.dropdown-toggle');
+        const dropdownMenu = document.querySelector('.dropdown-menu');
+
+        dropdownToggle.addEventListener('click', function(e) {
+            e.stopPropagation();
+            this.parentElement.classList.toggle('active');
+        });
+
+        window.addEventListener('click', function() {
+            const dropdowns = document.querySelectorAll('.dropdown');
+            dropdowns.forEach(dropdown => {
+                if (dropdown.classList.contains('active')) {
+                    dropdown.classList.remove('active');
+                }
+            });
+        });
+    });
+
+        </script>
+    <script src="{% static 'main.js' %}"></script>
+</body>
+</html>

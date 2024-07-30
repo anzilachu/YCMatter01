@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YCMatters - The YC Interview</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap">
+    <link rel="stylesheet" href="{% static 'interview.css' %}">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+</head>
+<body>
+    <a href="{% url 'chat:start_pitch' %}" id="exit-link">
+        <button id="exit-btn" class="material-symbols-rounded">exit_to_app</button>
+    </a>
+
+    <div class="container">
+        <div class="left-section">
+            <div class="voice-container">
+                <div id="voice-button" class="voice-button">
+                    <img id="state-image" src="{% static 'listening1.webp' %}" alt="Listening" style="display:block;">
+                    <img id="talking-gif" src="{% static 'talking1.gif' %}" alt="Talking" style="display:none;">
+                </div>
+                <div id="speak-animation" class="speak-animation" style="display:none;">Speak</div>
+                <div id="interim-result"></div>
+                <div class="controls" style="display:none;">
+                    <button id="pause-btn" class="material-symbols-rounded">pause</button>
+                    <button id="play-btn" class="material-symbols-rounded" style="display:none;">play_arrow</button>
+                </div><br><br>
+            </div>
+            <div class="instructions">
+                <h2>Instructions</h2>
+                <ul>
+                    <li>1. Click the avatar to talk (if the microphone turns off).</li>
+                    <li>2. Interrupt the response by clicking the avatar.</li>
+                    <li>3. Time is limited; speak clearly about your startup.</li>
+                </ul>
+            </div>
+            <h4 class="mobile-instructions">Talk / Interrupt by clicking the avatar</h4>
+            <div class="timer-container">
+                <h2>Time Remaining: <span id="timer">10:00</span></h2>
+            </div>
+        </div>
+        <div id="response" class="response-container"></div>
+    </div>
+    <script type="text/javascript">
+        $(document).ready(function() {
+    let isPremium = {{ is_premium|lower }};
+    let timerStarted = localStorage.getItem('timerStarted') === 'true';
+    let totalTime = isPremium ? 600 : 300;  // 10 minutes for premium, 5 for non-premium
+    if (localStorage.getItem('totalTime')) {
+        totalTime = parseInt(localStorage.getItem('totalTime'));
+    } else {
+        localStorage.setItem('totalTime', totalTime.toString());
+    }
+    let timerInterval;
+    let currentUtterance = null;
+    let isRecognitionStoppedManually = false;
+    let isAISpeaking = false;
+    let initialMessagePlayed = localStorage.getItem('initialMessagePlayed') === 'true';
+    let speakTimeout;
+
+    let finalTranscript = '';
+    let interimTranscript = '';
+    let silenceTimer;
+    const SILENCE_DURATION = 1000;
+
+    loadResponses();
+    updateTimerDisplay();
+
+    if (timerStarted) {
+        startTimer();
+    }
+
+    const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+    recognition.lang = 'en-US';
+    recognition.interimResults = true;
+    recognition.continuous = true;
+
+    let storedState = localStorage.getItem('recognitionState');
+    if (storedState === 'listening') {
+        startRecognition();
+    }
+
+    $(window).on('beforeunload', function() {
+        clearAllData();
+        return null;
+    });
+
+    function clearAllData() {
+        if (window.speechSynthesis) {
+            window.speechSynthesis.cancel();
+        }
+
+        if (currentUtterance) {
+            currentUtterance = null;
+        }
+
+        localStorage.clear();
+
+        $.ajax({
+            url: '{% url "chat:clear_interview_context" %}',
+            method: 'POST',
+            async: false,
+            data: {
+                csrfmiddlewaretoken: $('input[name=csrfmiddlewaretoken]').val()
+            }
+        });
+    }
+
+    function loadResponses() {
+        let responses = JSON.parse(localStorage.getItem('responses') || '[]');
+        responses.forEach(response => {
+            let messageClass = response.isUser ? 'user-message' : 'ai-message';
+            $('#response').append('<div class="message ' + messageClass + '"><p>' + response.message + '</p></div>');
+        });
+        $('#response').scrollTop($('#response')[0].scrollHeight);
+    }
+
+    function storeResponse(message, isUser) {
+        let responses = JSON.parse(localStorage.getItem('responses') || '[]');
+        responses.push({message, isUser});
+        localStorage.setItem('responses', JSON.stringify(responses));
+    }
+
+    function setRecognitionState(state) {
+        localStorage.setItem('recognitionState', state);
+    }
+
+    function startRecognition() {
+        if (isAISpeaking) {
+            if (currentUtterance) {
+                window.speechSynthesis.cancel();
+                currentUtterance = null;
+            }
+            isAISpeaking = false;
+        }
+        if (!initialMessagePlayed) {
+            initialMessagePlayed = true;
+            localStorage.setItem('initialMessagePlayed', 'true');
+            startTimer();
+        }
+        isRecognitionStoppedManually = false;
+        $('#voice-button').addClass('listening');
+        $('#state-image').show();
+        $('#talking-gif').hide();
+        finalTranscript = '';
+        interimTranscript = '';
+        recognition.start();
+        setRecognitionState('listening');
+    }
+
+    $('#voice-button').on('click', function() {
+        if (currentUtterance) {
+            window.speechSynthesis.cancel();
+            currentUtterance = null;
+            $('#state-image').show();
+            $('#talking-gif').hide();
+            isAISpeaking = false;
+            $('.controls').hide();
+        }
+
+        hideSpeakAnimation();
+        showSpeakAnimation();
+        startRecognition();
+    });
+
+    function sendMessage(message) {
+        recognition.stop();
+        $.ajax({
+            type: 'POST',
+            url: '{% url "chat:interview_view" %}',
+            data: {
+                'message': message,
+                'csrfmiddlewaretoken': $('input[name=csrfmiddlewaretoken]').val(),
+            },
+            success: function(response) {
+                $('#response').append('<div class="message user-message"><p>' + message + '</p></div>');
+                storeResponse(message, true);
+                $('#response').append('<div class="message ai-message"><p>' + response.response_message + '</p></div>');
+                storeResponse(response.response_message, false);
+                $('#response').scrollTop($('#response')[0].scrollHeight);
+                speak(response.response_message);
+            },
+            error: function(xhr, status, error) {
+                console.error('Error:', error);
+                $('#response').append('<div class="message error-message"><p>There was an error processing your request. Please try again.</p></div>');
+                $('#response').scrollTop($('#response')[0].scrollHeight);
+            }
+        });
+    }
+
+    recognition.onstart = function() {
+        $('#state-image').show();
+        $('#talking-gif').hide();
+        setRecognitionState('listening');
+    };
+
+    recognition.onresult = function(event) {
+        clearTimeout(silenceTimer);
+        interimTranscript = '';
+        for (let i = event.resultIndex; i < event.results.length; ++i) {
+            if (event.results[i].isFinal) {
+                finalTranscript += event.results[i][0].transcript;
+            } else {
+                interimTranscript += event.results[i][0].transcript;
+            }
+        }
+
+        $('#interim-result').text(interimTranscript);
+
+        silenceTimer = setTimeout(() => {
+            if (finalTranscript) {
+                sendMessage(finalTranscript.trim());
+                finalTranscript = '';
+                $('#interim-result').text('');
+            }
+        }, SILENCE_DURATION);
+    };
+
+    recognition.onspeechend = function() {
+        if (!isRecognitionStoppedManually && !isAISpeaking) {
+            hideSpeakAnimation();
+            startRecognition();
+        }
+        setRecognitionState('idle');
+    };
+
+    recognition.onerror = function(event) {
+        if (event.error !== 'no-speech') {
+            console.error('Speech recognition error:', event.error);
+            $('#response').append('<div class="message error-message"><p>There was an error with speech recognition. Please try again.</p></div>');
+            $('#response').scrollTop($('#response')[0].scrollHeight);
+        }
+        if (!isAISpeaking) startRecognition();
+        setRecognitionState('idle');
+    };
+
+    function speak(message, isInitialMessage = false) {
+        if (currentUtterance) {
+            window.speechSynthesis.cancel();
+            currentUtterance = null;
+        }
+
+        const utterance = new SpeechSynthesisUtterance(message);
+        currentUtterance = utterance;
+
+        utterance.onstart = function() {
+            isAISpeaking = true;
+            isRecognitionStoppedManually = true;
+            recognition.stop();
+            $('#voice-button').addClass('speaking');
+            $('#state-image').hide();
+            $('#talking-gif').show();
+            $('.controls').show();
+            $('#pause-btn').show();
+            $('#play-btn').hide();
+        };
+
+        utterance.onend = function() {
+            isAISpeaking = false;
+            currentUtterance = null;
+            $('#voice-button').removeClass('speaking');
+            $('#state-image').show();
+            $('#talking-gif').hide();
+            $('.controls').hide();
+            if (isInitialMessage) {
+                initialMessagePlayed = true;
+                localStorage.setItem('initialMessagePlayed', 'true');
+                startTimer();
+            }
+            showSpeakAnimation();
+            startRecognition();
+        };
+
+        utterance.onerror = function(event) {
+            console.error('Speech synthesis error:', event.error);
+            isAISpeaking = false;
+            currentUtterance = null;
+            $('#voice-button').removeClass('speaking');
+            $('#state-image').show();
+            $('#talking-gif').hide();
+            $('.controls').hide();
+            startRecognition();
+        };
+
+        window.speechSynthesis.speak(utterance);
+    }
+
+    $('#pause-btn').on('click', function() {
+        if (currentUtterance) {
+            window.speechSynthesis.pause();
+            $('#state-image').show();
+            $('#talking-gif').hide();
+            $('#pause-btn').hide();
+            $('#play-btn').show();
+        }
+    });
+
+    $('#play-btn').on('click', function() {
+        if (currentUtterance) {
+            window.speechSynthesis.resume();
+            $('#state-image').hide();
+            $('#talking-gif').show();
+            $('#pause-btn').show();
+            $('#play-btn').hide();
+        }
+    });
+
+    function startTimer() {
+        timerStarted = true;
+        localStorage.setItem('timerStarted', 'true');
+        totalTime = isPremium ? 600 : 300;  // 10 minutes for premium, 5 for non-premium
+        localStorage.setItem('totalTime', totalTime.toString());
+        updateTimerDisplay();
+        timerInterval = setInterval(function() {
+            totalTime--;
+            localStorage.setItem('totalTime', totalTime.toString());
+            updateTimerDisplay();
+            if (totalTime <= 0) {
+                clearInterval(timerInterval);
+                $('#response').append('<div class="message ai-message"><p>Time is up. Thank you for participating in the interview.</p></div>');
+                $('#response').scrollTop($('#response')[0].scrollHeight);
+
+                clearInterviewContext();
+
+                setTimeout(function() {
+                    window.location.href = "{% url 'chat:start_pitch' %}";
+                }, 2000);
+            }
+        }, 1000);
+    }
+
+    function clearInterviewContext() {
+        $.ajax({
+            type: 'POST',
+            url: '{% url "chat:clear_interview_context" %}',
+            headers: {'X-Requested-With': 'XMLHttpRequest'},
+            success: function(response) {
+                console.log('Interview context cleared successfully');
+            },
+            error: function(xhr, status, error) {
+                console.error('Error clearing interview context:', error);
+            }
+        });
+    }
+
+    function updateTimerDisplay() {
+        const minutes = Math.floor(totalTime / 60);
+        const seconds = totalTime % 60;
+        $('#timer').text(`${minutes}:${seconds < 10 ? '0' : ''}${seconds}`);
+    }
+
+    function showSpeakAnimation() {
+        clearTimeout(speakTimeout);
+        $('#speak-animation').fadeIn(300, function() {
+            speakTimeout = setTimeout(function() {
+                $('#speak-animation').fadeOut(300);
+            }, 7000);
+        });
+    }
+
+    function hideSpeakAnimation() {
+        clearTimeout(speakTimeout);
+        $('#speak-animation').fadeOut(300);
+    }
+
+    $('#exit-btn').on('click', function(event) {
+        event.preventDefault();
+        clearAllData();
+        window.location.href = "{% url 'chat:start_pitch' %}";
+    });
+
+    if (!initialMessagePlayed) {
+        const welcomeMessage = "Hello! Let's start the pitch";
+        $('#response').append('<div class="message ai-message"><p>' + welcomeMessage + '</p></div>');
+        storeResponse(welcomeMessage, false);
+        speak(welcomeMessage, true);
+    } else {
+        showSpeakAnimation();
+        startRecognition();
+    }
+});
+    </script>
+</body>
+</html>

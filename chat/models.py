@@ -1,0 +1,75 @@
+from django.db import models
+from django.utils import timezone
+from django.contrib.auth.models import AbstractUser
+from django.utils import timezone
+
+
+class User(AbstractUser):
+    email = models.EmailField(unique=True)
+    date_joined = models.DateTimeField(auto_now_add=True)
+    is_premium = models.BooleanField(default=False)
+
+    def __str__(self):
+        return self.email
+
+    class Meta:
+        verbose_name = "User"
+        verbose_name_plural = "Users"
+
+
+class Otp(models.Model):
+    email = models.EmailField()
+    otp = models.CharField(max_length=6)
+    expiry_time = models.DateTimeField()
+
+    def is_expired(self):
+        return timezone.now() > self.expiry_time
+
+    def __str__(self):
+        return f"{self.email} - {self.otp}"
+
+    class Meta:
+        verbose_name = "Otp"
+        verbose_name_plural = "Otps"
+
+class Community(models.Model):
+    email = models.EmailField(unique=True)
+    date_joined = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.email
+    
+class Feedback(models.Model):
+    message = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.message
+    
+class StartupIdea(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    idea = models.TextField()
+    analysis = models.TextField()
+    scores = models.JSONField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user.email}'s idea: {self.idea[:50]}..."
+
+    class Meta:
+        verbose_name = "Startup Idea"
+        verbose_name_plural = "Startup Ideas"
+
+
+class Payment(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    payment_id = models.CharField(max_length=100)
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    currency = models.CharField(max_length=3)
+    status = models.CharField(max_length=20)
+    order_id = models.CharField(max_length=100)
+    signature = models.CharField(max_length=200)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user.email} - {self.payment_id}"

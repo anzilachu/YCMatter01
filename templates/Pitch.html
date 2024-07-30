@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Pitch Master</title>
+    <link rel="stylesheet" href="{% static 'styles.css' %}" />
+    <link
+      href="https://cdn.jsdelivr.net/npm/remixicon@4.3.0/fonts/remixicon.css"
+      rel="stylesheet"
+    />
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body, html {
+            font-family: 'Poppins', sans-serif;
+            background: #f4f7f6;
+            color: #333;
+            height: 100%;
+            width: 100%;
+            overflow-x: hidden;
+        }
+        
+        .container {
+            display: flex;
+            min-height: 100%;
+            width: 100%;
+        }
+        
+        .left-panel {
+            flex: 1;
+            background: linear-gradient(45deg, #ff6600cd, #ff6600d8, #e2e1e1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+        
+        .quote {
+            color: white;
+            font-size: 2.5rem;
+            font-weight: 300;
+            text-align: center;
+            line-height: 1.4;
+        }
+        
+        .right-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 3rem;
+            background: white;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            color: #FF6600;
+        }
+        
+        .description {
+            font-size: 1rem;
+            margin-bottom: 2rem;
+            color: #666;
+            line-height: 1.6;
+        }
+        
+        .start-btn {
+            background: #FF6600;
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            font-size: 1rem;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            align-self: flex-start;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+        }
+        
+        .start-btn:hover {
+            background: #d76d77;
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        
+        .form-container {
+            margin-top: 3rem;
+            width: 100%;
+        }
+        
+        .form-heading {
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+            color: #3a1c71;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .featured-tag {
+            background-color: #c40505;
+            color: white;
+            font-size: 0.7rem;
+            padding: 2px 8px;
+            border-radius: 12px;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+        
+        input[type="text"] {
+            width: 100%;
+            padding: 0.8rem;
+            margin-bottom: 1rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+        
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #3a1c71;
+            box-shadow: 0 0 0 2px rgba(58,28,113,0.2);
+        }
+        
+        /* Responsive styles */
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+                margin-top: 50px;
+            }
+            
+            .left-panel, .right-panel {
+                flex: none;
+                width: 100%;
+            }
+            
+            .left-panel {
+                min-height: 30vh;
+            }
+            
+            .quote {
+                font-size: 1.8rem;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .right-panel {
+                padding: 2rem;
+            }
+            
+            .start-btn {
+                align-self: center;
+                width: 80%;
+            }
+            .nav__header {
+                padding: 1rem;
+                width: 100%;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                background-color: var(--primary-color);
+                margin-top: 0;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .quote {
+                font-size: 1.5rem;
+            }
+            
+            h1 {
+                font-size: 1.8rem;
+            }
+            
+            .description {
+                font-size: 0.9rem;
+            }
+            
+            .start-btn {
+                font-size: 0.9rem;
+                padding: 0.8rem 1.6rem;
+            }
+            
+        }
+    </style>
+</head>
+<body>
+    <nav style="margin-bottom: 15px;">
+        <div class="nav__header">
+          <div class="nav__logo">
+            <a href="{% url 'chat:home' %}"><span>YC</span>Matters</a>
+          </div>
+          <div class="nav__menu__btn" id="menu-btn">
+            <span><i class="ri-menu-line"></i></span>
+          </div>
+        </div>
+        <ul class="nav__links" id="nav-links">
+          <li><a href="{% url 'chat:home' %}">Home</a></li>
+          <li><a href="{% url 'chat:about' %}">About Us</a></li>
+          <li><a href="{% url 'chat:contact' %}">Contact</a></li>
+          {% if user.is_authenticated %}
+            <li><a href="{% url 'chat:idea_list' %}">My Ideas</a></li>
+            <li><a href="{% url 'chat:initiate_payment' %}">Pricing</a></li>
+        {% endif %}
+          <li class="mobile-login">
+            {% if user.is_authenticated %}
+              <a href="{% url 'chat:logout' %}">Logout</a>
+            {% else %}
+              <a href="{% url 'chat:sign_in_or_sign_up' %}">Login</a>
+            {% endif %}
+          </li>
+        </ul>
+        <div class="nav__btns nav__btns-auth">
+          {% if user.is_authenticated %}
+          <div class="dropdown">
+            <button class="btn sign__in dropdown-toggle">{{ user.username }}</button>
+            <div class="dropdown-menu">
+              <a href="{% url 'chat:logout' %}">Logout</a>
+            </div>
+          </div>
+          {% else %}
+          <a href="{% url 'chat:sign_in_or_sign_up' %}">
+            <button class="btn sign__in">Log In</button>
+          </a>
+          {% endif %}
+        </div>
+      </nav>
+    <div class="container">
+        <div class="left-panel">
+            <div class="quote">"Master the art of persuasion, and watch your ideas soar to new heights."</div>
+        </div>
+        <div class="right-panel">
+            <h1>AI Pitch Master</h1>
+            <p class="description">Elevate your pitch game with our cutting-edge AI interview simulator. Perfect for entrepreneurs aiming to impress investors, including Y Combinator. Sharpen your skills, refine your message, and step into your next pitch with confidence.</p>
+            <button class="start-btn" onclick="window.location.href='{% url 'chat:interview_view' %}'">Start Pitch</button>
+            <div class="form-container">
+                <div class="form-heading">Customize Your Experience <span class="featured-tag">PREMIUM</span></div>
+                <form id="customPitchForm">
+                    {% csrf_token %}
+                    <input type="text" id="investorName" placeholder="Investor's Name" required>
+                    <input type="text" id="industryFocus" placeholder="Industry Focus" required>
+                    <input type="text" id="investmentStage" placeholder="Investment Stage (e.g., Seed, Series A)" required>
+                </form>
+                <button class="start-btn" id="startCustomPitch">Start Customized Pitch</button>
+            </div>
+        </div>
+    </div>
+    <script src="{% static 'main.js' %}"></script>
+    <script>
+        document.getElementById('startCustomPitch').addEventListener('click', function(event) {
+            event.preventDefault();
+        
+            var form = document.getElementById('customPitchForm');
+            var inputs = form.getElementsByTagName('input');
+            var isValid = true;
+        
+            for (var i = 0; i < inputs.length; i++) {
+                if (inputs[i].value.trim() === '') {
+                    isValid = false;
+                    inputs[i].style.borderColor = 'red';
+                } else {
+                    inputs[i].style.borderColor = '';
+                }
+            }
+        
+            if (!isValid) {
+                alert('Please fill in all fields before submitting.');
+                return;
+            }
+        
+            var investorName = document.getElementById('investorName').value;
+            var industryFocus = document.getElementById('industryFocus').value;
+            var investmentStage = document.getElementById('investmentStage').value;
+        
+            var data = {
+                investorName: investorName,
+                industryFocus: industryFocus,
+                investmentStage: investmentStage
+            };
+        
+            fetch('{% url "chat:check_premium_status" %}', {
+                method: 'GET',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.is_premium) {
+                    // User is premium, proceed with customized pitch
+                    return fetch('{% url "chat:interview_view" %}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': getCookie('csrftoken'),
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        body: JSON.stringify(data)
+                    });
+                } else {
+                    // User is not premium, redirect to payment page
+                    window.location.href = '{% url "chat:initiate_payment" %}';
+                    throw new Error('Not premium user');
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Handle the response, redirect to the interview page
+                window.location.href = '{% url "chat:interview_view" %}';
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+            });
+        });
+        
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+    </script>
+</body>
+</html>

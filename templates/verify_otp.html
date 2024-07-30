@@ -1,0 +1,29 @@
+</html>
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="{% static 'login.css' %}" />
+    <title>Verify OTP</title>
+  </head>
+  <body>
+    <div class="container">
+      <div class="forms-container">
+        <div class="signin-signup">
+          <form method="POST">
+            {% csrf_token %}
+            <h2 class="title">Verify OTP</h2>
+            <p>An OTP has been sent to your email. Please enter it below.</p>
+            <div class="input-field">
+              <i class="fas fa-lock"></i>
+              <input type="text" name="otp" placeholder="OTP" required />
+            </div>
+            <input type="submit" value="Verify" class="btn solid" />
+          </form>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
