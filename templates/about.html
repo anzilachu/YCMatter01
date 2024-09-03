@@ -13,13 +13,13 @@
     <link href="css/fontawesome.min.css" rel="stylesheet" type="text/css" />
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap">
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
-    <title>About | YCMatters</title>
+    <title>About | YCLens</title>
 </head>
 <body>
     <nav>
         <div class="nav__header">
           <div class="nav__logo">
-            <a href="{% url 'chat:home' %}"><span>YC</span>Matters</a>
+            <a href="{% url 'chat:home' %}"><span>YC</span>Lens</a>
           </div>
           <div class="nav__menu__btn" id="menu-btn">
             <span><i class="ri-menu-line"></i></span>
@@ -31,7 +31,6 @@
           <li><a href="{% url 'chat:contact' %}">Contact</a></li>
           {% if user.is_authenticated %}
             <li><a href="{% url 'chat:idea_list' %}">My Ideas</a></li>
-            <li><a href="{% url 'chat:initiate_payment' %}">Pricing</a></li>
         {% endif %}
           <li class="mobile-login">
             {% if user.is_authenticated %}
@@ -161,8 +160,8 @@
     </style>
         <section class="about">
             <div class="about__container">
-                <h1 class="about__title">About YCMatters</h1>
-                <p class="about__description">Welcome to YCMatters, your go-to platform for insights and analysis on Y Combinator. We provide tools to evaluate ideas, brainstorm, practice interviews, and find motivation, all powered by real-time AI data.</p>
+                <h1 class="about__title">About YCLens</h1>
+                <p class="about__description">Welcome to YCLens, your go-to platform for planning and brainstorming your startup idea using AI with research on real founder's experience and YC insights</p>
                 <div class="about__features">
                     <div class="about__feature">
                         <i class="material-icons">insights</i>
@@ -178,11 +177,11 @@
                     </div>
                     <div class="about__feature">
                         <i class="material-icons">question_answer</i>
-                        <p>Practice Interviews</p>
+                        <p>Market win</p>
                     </div>
                     <div class="about__feature">
                         <i class="material-icons">trending_up</i>
-                        <p>Get Motivated</p>
+                        <p>Profit plannning</p>
                     </div>
                 </div>
             </div>

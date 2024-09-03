@@ -3,14 +3,13 @@
 <html lang="en" dir="ltr">
 <head>
     <meta charset="utf-8">
-    <title>YCMatters - Market Potential</title>
+    <title>YCLens - Market Potential</title>
     <link rel="stylesheet" href="{% static 'style.css' %}">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- Google Fonts Link For Icons -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 </head>
-<body>
+<body data-idea-id="{{ idea.id }}">
   <button id="exit-btn" class="material-symbols-rounded">exit_to_app</button>
 
   <!-- Chats container -->

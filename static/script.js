@@ -1,4 +1,13 @@
 document.addEventListener("DOMContentLoaded", () => {
+    const getIdeaId = () => {
+        const bodyElement = document.body;
+        const ideaId = bodyElement.dataset.ideaId;
+        if (!ideaId) {
+            console.error("Idea ID not found in body data attribute");
+            return null;
+        }
+        return ideaId;
+    };
     const chatContainer = document.querySelector(".chat-container");
     const chatInput = document.querySelector("#chat-input");
     const sendButton = document.querySelector("#send-btn");
@@ -30,10 +39,13 @@ document.addEventListener("DOMContentLoaded", () => {
     const deleteChats = () => {
         const chats = document.querySelectorAll(".chat");
         chats.forEach(chat => chat.remove());
-
+    
+        const ideaId = getIdeaId();
+        if (!ideaId) return;
+    
         $.ajax({
             type: "POST",
-            url: "/clear_session/",
+            url: `/idea/${ideaId}/clear_session/`,
             headers: {
                 'X-Requested-With': 'XMLHttpRequest',
                 'X-CSRFToken': csrfToken
@@ -64,9 +76,11 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     const loadChatHistory = () => {
+        const ideaId = getIdeaId();
+        if (!ideaId) return;
         $.ajax({
             type: "GET",
-            url: "/get_conversation/",
+            url: `/idea/${ideaId}/get_conversation/`,
             headers: {
                 'X-Requested-With': 'XMLHttpRequest'
             },
@@ -101,15 +115,17 @@ document.addEventListener("DOMContentLoaded", () => {
     const sendMessage = () => {
         const userMessage = chatInput.value.trim();
         if (userMessage === "") return;
-
+    
+        console.log("Sending message:", userMessage);
+    
         const defaultTitle = document.querySelector(".default-title");
         if (defaultTitle) defaultTitle.remove();
-
+    
         const userChat = createChatElement(userMessage, "outgoing");
         chatContainer.appendChild(userChat);
-
+    
         chatInput.value = "";
-
+    
         const typingAnimation = document.createElement("div");
         typingAnimation.classList.add("chat", "incoming");
         typingAnimation.innerHTML = `
@@ -124,21 +140,34 @@ document.addEventListener("DOMContentLoaded", () => {
             </div>`;
         chatContainer.appendChild(typingAnimation);
         scrollToBottom();
-
-        const csrfTokenInput = document.querySelector('input[name="csrfmiddlewaretoken"]');
-        const csrfToken = csrfTokenInput ? csrfTokenInput.value : '';
-
+    
+        const csrfToken = getCookie('csrftoken');
+        console.log("CSRF Token:", csrfToken);
+    
+        const ideaId = getIdeaId();
+        console.log("Idea ID:", ideaId);
+    
+        if (!ideaId) {
+            console.error("No Idea ID found. Aborting request.");
+            return;
+        }
+    
+        const url = `/idea/${ideaId}/chat/`;
+        console.log("Request URL:", url);
+    
         $.ajax({
             type: "POST",
-            url: "/chat/",
+            url: url,
             data: {
                 message: userMessage,
                 csrfmiddlewaretoken: csrfToken
             },
             headers: {
-                'X-Requested-With': 'XMLHttpRequest'
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRFToken': csrfToken
             },
             success: function(response) {
+                console.log("Success response:", response);
                 typingAnimation.remove();
                 const botMessage = response.response_message;
                 const botChat = createChatElement(botMessage, "incoming");
@@ -146,6 +175,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 scrollToBottom();
             },
             error: function(xhr, textStatus, errorThrown) {
+                console.error("Error details:", xhr.responseText);
+                console.error("Status:", textStatus);
+                console.error("Error thrown:", errorThrown);
+                console.error("Response headers:", xhr.getAllResponseHeaders());
                 typingAnimation.remove();
                 const errorMessage = "An error occurred. Please try again.";
                 const errorChat = createChatElement(errorMessage, "incoming");

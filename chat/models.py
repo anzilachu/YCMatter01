@@ -8,6 +8,13 @@ class User(AbstractUser):
     email = models.EmailField(unique=True)
     date_joined = models.DateTimeField(auto_now_add=True)
     is_premium = models.BooleanField(default=False)
+    premium_expiry = models.DateTimeField(null=True, blank=True)
+
+    def update_premium_status(self):
+        if self.premium_expiry and timezone.now() > self.premium_expiry:
+            self.is_premium = False
+            self.premium_expiry = None
+            self.save()
 
     def __str__(self):
         return self.email
@@ -73,3 +80,15 @@ class Payment(models.Model):
 
     def __str__(self):
         return f"{self.user.email} - {self.payment_id}"
+    
+
+class Transaction(models.Model):
+    payment = models.OneToOneField(Payment, on_delete=models.CASCADE, related_name='transaction')
+    order_id = models.CharField(max_length=100, unique=True)
+    signature = models.CharField(max_length=200)
+    status = models.CharField(max_length=20, default='PENDING')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.payment.user.email} - {self.order_id}"

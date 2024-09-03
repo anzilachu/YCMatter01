@@ -35,7 +35,7 @@ nav {
   isolation: isolate;
   width: 100%;
   z-index: 9;
-  margin-bottom: 60px;
+  margin-bottom: 100px;
 }
 
 .nav__header {
@@ -133,7 +133,9 @@ nav {
   max-width: 520px;
   margin-inline: auto;
 }
-
+.hero-1 {
+  height: 67vh;
+}
 .header__image__card {
   position: absolute;
   padding: 0.75rem 1rem;
@@ -180,10 +182,24 @@ nav {
   transform: translateY(-50%);
 }
 
+
 .header__content h1 {
   margin-bottom: 1rem;
-  font-size: 4.5rem;
-  font-weight: 400;
+  font-size: 6rem;
+  font-family: var(--header-font);
+  color: var(--text-dark);
+  line-height: 5.5rem;
+  text-align: center;
+  margin-top: 1rem;
+}
+.header__content__new {
+  border: 2px dotted #FF6600;
+  padding: 10px;
+}
+
+.header__content__new h1 {
+  margin-bottom: 1rem;
+  font-size: 4rem;
   font-family: var(--header-font);
   color: var(--text-dark);
   line-height: 5.5rem;
@@ -191,12 +207,15 @@ nav {
   margin-top: 1rem;
 }
 
+.header__content__new h1 span {
+  color: var(--primary-color);
+}
+
 .header__content h1 span {
   color: var(--primary-color);
 }
 
 .header__content p {
-  margin-bottom: 2rem;
   columns: var(--text-light);
   line-height: 1.75rem;
   text-align: center;
@@ -262,7 +281,6 @@ nav {
 }
 
 .header__content button {
-  width: 100%;
   padding: 1rem 2rem;
   outline: none;
   border: none;
@@ -291,7 +309,7 @@ input::placeholder {
 @media (width > 768px) {
   nav {
     position: static;
-    padding-block: 2rem 0;
+    padding-block: 4rem 0;
     padding-inline: 1rem;
     max-width: var(--max-width);
     margin-inline: auto;
@@ -384,7 +402,6 @@ input::placeholder {
   .header__image {
     grid-area: 1/2/2/3;
   }
-
   
 }
 
@@ -448,13 +465,13 @@ input::placeholder {
   }
   .header__content h1 {
     margin-bottom: 1rem;
-    font-size: 2.5rem;
-    font-weight: 400;
+    font-size: 3rem;
+    font-weight: 4000;
     font-family: var(--header-font);
     color: var(--text-dark);
     text-align: center;
     margin-top: 1rem;
-    line-height: 2.5rem;
+    line-height: 3.5rem;
   }
   .header__content button {
     padding: 1rem 2rem;
@@ -537,30 +554,6 @@ input::placeholder {
   animation: scroll 20s linear infinite;
 }
 
-.yt-auto-scroll-item {
-  min-width: 200px;
-  transition: transform 0.3s ease-in-out;
-}
-
-.yt-auto-scroll-item img {
-  width: 100%;
-  height: auto;
-  border-radius: 10px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}
-
-.yt-auto-scroll-item img:hover {
-  transform: scale(1.05);
-}
-
-@keyframes scroll {
-  0% {
-      transform: translateX(0);
-  }
-  100% {
-      transform: translateX(-100%);
-  }
-}
 
 /* Adding manual scroll behavior */
 .yt-auto-scroll-container:hover .yt-auto-scroll {
@@ -686,6 +679,16 @@ input::placeholder {
   .newsletter-form button {
     border-radius: 50px;
     justify-content: center;
+  }
+  
+  .header__content__new h1 {
+    margin-bottom: 1rem;
+    font-size: 2rem;
+    font-family: var(--header-font);
+    color: var(--text-dark);
+    line-height: 2.5rem;
+    text-align: center;
+    margin-top: 1rem;
   }
 }
 
@@ -1083,7 +1086,7 @@ input::placeholder {
 }
 
 .community-content h2 {
-  font-size: 2.5rem;
+  font-size: 1.5rem;
   color: var(--text-dark);
   margin-bottom: 20px;
 }
@@ -1179,4 +1182,93 @@ input::placeholder {
     margin: 0 auto 20px;
     display: block;
   }
+}
+
+
+.yt-container {
+  max-width: 100px;
+  margin: 50px auto;
+  padding: 20px;
+  background: #fff;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+  border-radius: 10px;
+}
+
+.yt-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+}
+
+.yt-grid-item {
+  position: relative;
+  overflow: hidden;
+}
+
+.yt-grid-item img {
+  width: 100%;
+  height: auto;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease-in-out;
+}
+
+.yt-grid-item img:hover {
+  transform: scale(1.05);
+}
+
+.yt-grid-item a {
+  display: block;
+  text-decoration: none;
+}
+.yt-auto-scroll-container {
+  overflow: hidden;
+  max-width: 1100px;
+  margin: 50px auto;
+  padding: 20px;
+  background: #fff;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+  border-radius: 10px;
+  position: relative;
+}
+
+.yt-auto-scroll {
+  display: flex;
+  gap: 20px;
+  animation: scroll 20s linear infinite;
+}
+
+.yt-auto-scroll-item {
+  min-width: 200px;
+  transition: transform 0.3s ease-in-out;
+}
+
+.yt-auto-scroll-item img {
+  width: 100%;
+  height: auto;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.yt-auto-scroll-item img:hover {
+  transform: scale(1.05);
+}
+
+@keyframes scroll {
+  0% {
+      transform: translateX(0);
+  }
+  100% {
+      transform: translateX(-100%);
+  }
+}
+
+/* Adding manual scroll behavior */
+.yt-auto-scroll-container:hover .yt-auto-scroll {
+  animation-play-state: paused;
+}
+
+.yt-auto-scroll-container {
+  overflow-x: scroll;
+  scroll-behavior: smooth;
 }

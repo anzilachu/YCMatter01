@@ -1,4 +1,14 @@
 document.addEventListener("DOMContentLoaded", () => {
+    const getIdeaId = () => {
+        const bodyElement = document.body;
+        const ideaId = bodyElement.dataset.ideaId;
+        if (!ideaId) {
+            console.error("Idea ID not found in body data attribute");
+            return null;
+        }
+        return ideaId;
+    };
+
     const chatContainer = document.querySelector(".chat-container");
     const chatInput = document.querySelector("#chat-input");
     const sendButton = document.querySelector("#send-btn");
@@ -31,15 +41,19 @@ document.addEventListener("DOMContentLoaded", () => {
         const chats = document.querySelectorAll(".chat");
         chats.forEach(chat => chat.remove());
 
+        const ideaId = getIdeaId();
+        if (!ideaId) return;
+
         $.ajax({
             type: "POST",
-            url: "/clear_session_cold_calls/",
+            url: `/idea/${ideaId}/clear_session_cold_calls/`,
             headers: {
                 'X-Requested-With': 'XMLHttpRequest',
                 'X-CSRFToken': csrfToken
             },
             success: function(response) {
                 console.log("Session data cleared successfully.");
+                loadChatHistory(); // Reload the initial message after clearing
             },
             error: function(xhr, textStatus, errorThrown) {
                 console.error("Failed to clear session data:", errorThrown);
@@ -52,7 +66,9 @@ document.addEventListener("DOMContentLoaded", () => {
         chatDiv.classList.add("chat", className);
         const chatDetails = document.createElement("div");
         chatDetails.classList.add("chat-details");
-        chatDetails.innerHTML = content;  // Render HTML content
+        const chatText = document.createElement("p");
+        chatText.innerHTML = content;  // Use innerHTML instead of textContent
+        chatDetails.appendChild(chatText);
         chatDiv.appendChild(chatDetails);
         return chatDiv;
     };
@@ -62,16 +78,20 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     const loadChatHistory = () => {
+        const ideaId = getIdeaId();
+        if (!ideaId) return;
+
         $.ajax({
             type: "GET",
-            url: "/get_conversation_cold_calls/",
+            url: `/idea/${ideaId}/get_conversation_cold_calls/`,
             headers: {
                 'X-Requested-With': 'XMLHttpRequest'
             },
             success: function(response) {
+                chatContainer.innerHTML = ''; // Clear existing chats
                 if (response.length === 0) {
                     // Append the initial AI message with a special class
-                    const initialMessage = "Let's prepare a cold call script. What is your product or service? Why is it unique compared to existing products or services? Who are you planning to call (e.g., their business or position)?";
+                    const initialMessage = "What is your Market strategy?";
                     const initialChatElement = createChatElement(initialMessage, "incoming");
                     initialChatElement.classList.add("initial-message");
                     chatContainer.appendChild(initialChatElement);
@@ -97,15 +117,15 @@ document.addEventListener("DOMContentLoaded", () => {
     const sendMessage = () => {
         const userMessage = chatInput.value.trim();
         if (userMessage === "") return;
-    
+
         const defaultTitle = document.querySelector(".default-title");
         if (defaultTitle) defaultTitle.remove();
-    
+
         const userChat = createChatElement(userMessage, "outgoing");
         chatContainer.appendChild(userChat);
-    
+
         chatInput.value = "";
-    
+
         const typingAnimation = document.createElement("div");
         typingAnimation.classList.add("chat", "incoming");
         typingAnimation.innerHTML = `
@@ -120,39 +140,41 @@ document.addEventListener("DOMContentLoaded", () => {
             </div>`;
         chatContainer.appendChild(typingAnimation);
         scrollToBottom();
-    
-        const csrfTokenInput = document.querySelector('input[name="csrfmiddlewaretoken"]');
-        const csrfToken = csrfTokenInput ? csrfTokenInput.value : null;
-    
+
+        const ideaId = getIdeaId();
+        if (!ideaId) return;
+
         $.ajax({
             type: "POST",
-            url: "/cold_calls_chat/",
+            url: `/idea/${ideaId}/cold_calls_chat/`,
+            data: {
+                message: userMessage,
+                csrfmiddlewaretoken: csrfToken
+            },
             headers: {
                 'X-Requested-With': 'XMLHttpRequest',
                 'X-CSRFToken': csrfToken
             },
-            data: {
-                message: userMessage
-            },
             success: function(response) {
                 typingAnimation.remove();
-                const assistantChat = document.createElement("div");
-                assistantChat.classList.add("chat", "incoming");
-                assistantChat.innerHTML = `<div class="chat-content"><div class="chat-details">${response.response_message}</div></div>`;
-                chatContainer.appendChild(assistantChat);
+                const botMessage = response.response_message;
+                const botChat = createChatElement(botMessage, "incoming");
+                chatContainer.appendChild(botChat);
                 scrollToBottom();
             },
             error: function(xhr, textStatus, errorThrown) {
-                console.error("Failed to send message:", errorThrown);
                 typingAnimation.remove();
+                const errorMessage = "An error occurred. Please try again.";
+                const errorChat = createChatElement(errorMessage, "incoming");
+                chatContainer.appendChild(errorChat);
+                scrollToBottom();
             }
         });
     };
 
-    sendButton.addEventListener("click", sendMessage);
-    deleteButton.addEventListener("click", deleteChats);
     themeButton.addEventListener("click", toggleTheme);
-
+    deleteButton.addEventListener("click", deleteChats);
+    sendButton.addEventListener("click", sendMessage);
     chatInput.addEventListener("keypress", (event) => {
         if (event.key === "Enter" && !event.shiftKey) {
             event.preventDefault();
@@ -160,6 +182,5 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
-    // Load initial chat history
     loadChatHistory();
 });

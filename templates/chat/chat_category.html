@@ -12,7 +12,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap">
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
-    <title>Chat Category | YCMatters</title>
+    <title>Chat Category | YCLens</title>
     <style>
         body {
             background-color: #f4f4f9;
@@ -148,10 +148,10 @@
     </div>
     <div id="analysis">{{ analysis|safe }}</div>
     <section class="chat-category">
-        <button class="custom-btn" data-url="{% url 'chat:chat_view' %}"><i class="fas fa-lightbulb"></i> Startup Talk</button>
-        <button class="custom-btn" data-url="{% url 'chat:market_chat' %}"><i class="fas fa-bullhorn"></i> Market Potential</button>
-        <button class="custom-btn" data-url="{% url 'chat:financial_chat' %}"><i class="fas fa-chart-line"></i> Financial Planning</button>
-        <button class="custom-btn" data-url="{% url 'chat:cold_calls_chat' %}"><i class="fas fa-phone"></i> Cold Call Automation</button>
+        <button class="custom-btn" data-url="{% url 'chat:chat_view' idea.id %}"><i class="fas fa-lightbulb"></i> Startup Talk</button>
+        <button class="custom-btn" data-url=""><i class="fas fa-bullhorn"></i> Market Potential</button>
+        <button class="custom-btn" data-url=""><i class="fas fa-chart-line"></i> Financial Planning</button>
+        <button class="custom-btn" data-url=""><i class="fas fa-phone"></i> Cold Call Automation</button>
     </section>
     <script>
         document.addEventListener('DOMContentLoaded', function() {

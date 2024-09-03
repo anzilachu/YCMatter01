@@ -22,13 +22,14 @@ from django.views import View
 from django.contrib.auth.decorators import login_required
 from django.urls import reverse_lazy
 from dotenv import load_dotenv
-from .models import StartupIdea, User, Payment
+from .models import StartupIdea, User, Payment,Transaction
 from .groq_analysis import analyze_startup, parse_scores, format_analysis_text
 from django.shortcuts import render, redirect, get_object_or_404
 from django.db.models import Max
 import logging
 from django.contrib import messages
 from django.shortcuts import render, redirect
+import re
 
 logger = logging.getLogger(__name__)
 
@@ -45,8 +46,20 @@ def home(request):
 def analyze_idea(request):
     if request.method == 'POST':
         idea = request.POST.get('idea')
-        analysis = analyze_startup(idea)
-        scores = parse_scores(analysis)
+        analysis = ""
+        scores = {}
+        attempts = 0
+        
+        # Retry mechanism
+        while attempts < 3:  # Limit the number of attempts to avoid infinite loops
+            analysis = analyze_startup(idea)
+            scores = parse_scores(analysis)
+            
+            if scores:  # Check if scores were successfully parsed
+                break  # Exit the loop if scores are found
+            
+            attempts += 1  # Increment the attempt counter
+
         formatted_analysis = format_analysis_text(analysis)
         
         # Save the idea and analysis to the database
@@ -58,6 +71,7 @@ def analyze_idea(request):
         )
         
         return redirect('chat:idea_detail', idea_id=startup_idea.id)
+    
     return render(request, 'chat/home.html')
 
 
@@ -73,14 +87,11 @@ def analysis_results(request):
 
 @login_required(login_url=reverse_lazy('chat:sign_in_or_sign_up'))
 def idea_list(request):
-    ideas = StartupIdea.objects.filter(user=request.user)\
-        .values('idea')\
-        .annotate(latest_id=Max('id'))\
-        .order_by('-latest_id')
-    
-    latest_ideas = StartupIdea.objects.filter(id__in=[item['latest_id'] for item in ideas])
-    
+    # Get the latest ideas sorted by the `id` field in descending order
+    latest_ideas = StartupIdea.objects.filter(user=request.user).order_by('-id')
+
     return render(request, 'chat/idea_list.html', {'ideas': latest_ideas})
+
 
 @login_required(login_url=reverse_lazy('chat:sign_in_or_sign_up'))
 def idea_detail(request, idea_id):
@@ -88,59 +99,101 @@ def idea_detail(request, idea_id):
     return render(request, 'chat/results.html', {
         'scores': json.dumps(idea.scores),
         'analysis': idea.analysis,
-        'idea': idea.idea
+        'idea': idea  # Pass the entire idea object
     })
 
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 @login_required(login_url=reverse_lazy('chat:sign_in_or_sign_up'))
 @csrf_exempt
-def chat_view(request):
-    if 'conversation' not in request.session:
+def chat_view(request, idea_id):
+    idea = get_object_or_404(StartupIdea, id=idea_id, user=request.user)
+    
+    conversation_key = f'conversation_{idea_id}'
+    
+    if conversation_key not in request.session:
         username = request.user.username if request.user.is_authenticated else "there"
-        request.session['conversation'] = [
-            {
-                "role": "system",
-                "content": "You are an AI assistant knowledgeable about Y Combinator. You hold all the information from Y Combinator's YouTube channel and understand Y Combinator's ideology. You interact like a human from Y Combinator, engaging in a conversational manner. When discussing startups, you can criticize, ask relevant questions such as 'How do you think you can scale it?', 'What is your budget?', and other critical aspects of startup development,one by one. you can also tell if you think the idea is not good after listening more about the idea one by one, after listening to the user. reply in a short way"
-            },
+        
+        system_message = {
+            "role": "system",
+            "content": f"You are an AI who have all the publically available data of y combinator youtube videos and real founder's experience based on that give insights, ask question to brainstorm the '{idea.idea}', the reply should really short, like a friendly chat, sometime you should say something funny to keep the coonversation active"
+        }
+        
+        # Generate an initial question based on the idea
+        client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+        initial_prompt = f"""
+                    Regarding the startup idea '{idea.idea}':
+
+                    1. First, ask the user if they've only just thought of this idea or if they've studied it before.
+
+                    2. If they've studied it:
+                    Generate a thoughtful, specific, and concise question that:
+                    - Shows understanding of the concept
+                    - Encourages deeper thinking about an important aspect of the startup
+                    - Is engaging and brief
+
+                    3. If they haven't studied it:
+                    Act as a friendly conversation partner. Ask basic, exploratory questions to help the user develop their idea further, as if two friends were casually discussing a startup concept.
+
+                    Provide only the question or conversation starter, without any additional details.
+                    """
+        
+        initial_completion = client.chat.completions.create(
+            messages=[
+                system_message,
+                {"role": "user", "content": initial_prompt}
+            ],
+            model="llama3-8b-8192",
+        )
+        initial_question = initial_completion.choices[0].message.content
+        
+        request.session[conversation_key] = [
+            system_message,
             {
                 "role": "assistant",
-                "content": f"Hello {username}, I'm here to support you on your journey. Tell me more about your idea!"
+                "content": f"Hello {username}! {initial_question}"
             }
         ]
 
     if request.method == "POST" and request.headers.get('x-requested-with') == 'XMLHttpRequest':
         user_message = request.POST.get("message")
+        logger.info(f"Received message: {user_message}")
 
-        conversation = request.session['conversation']
+        conversation = request.session.get(conversation_key, [])
         conversation.append({"role": "user", "content": user_message})
 
-        client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+        try:
+            client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+            chat_completion = client.chat.completions.create(
+                messages=conversation,
+                model="llama3-8b-8192",
+            )
+            response_message = chat_completion.choices[0].message.content
+            logger.info(f"AI response: {response_message}")
 
-        chat_completion = client.chat.completions.create(
-            messages=conversation,
-            model="llama3-8b-8192",
-        )
-        response_message = chat_completion.choices[0].message.content
+            conversation.append({"role": "assistant", "content": response_message})
+            request.session[conversation_key] = conversation
 
-        conversation.append({"role": "assistant", "content": response_message})
+            return JsonResponse({"response_message": response_message})
+        except Exception as e:
+            logger.error(f"Error in AI processing: {str(e)}")
+            return JsonResponse({"error": str(e)}, status=500)
 
-        request.session['conversation'] = conversation
-
-        return JsonResponse({"response_message": response_message})
-
-    return render(request, "chat/chat.html")
-
-
-
+    return render(request, "chat/chat.html", {'idea': idea})
 
 @csrf_exempt
-def clear_session(request):
-    if 'conversation' in request.session:
-        del request.session['conversation']
+def clear_session(request, idea_id):
+    conversation_key = f'conversation_{idea_id}'
+    if conversation_key in request.session:
+        del request.session[conversation_key]
     return HttpResponse(status=200)
 
-def get_conversation(request):
-    conversation = request.session.get('conversation', [])
+def get_conversation(request, idea_id):
+    conversation_key = f'conversation_{idea_id}'
+    conversation = request.session.get(conversation_key, [])
     filtered_conversation = [msg for msg in conversation if msg['role'] != 'system']
     return JsonResponse(filtered_conversation, safe=False)
 
@@ -360,24 +413,29 @@ def chatcategory(request):
 
 @login_required(login_url=reverse_lazy('chat:sign_in_or_sign_up'))
 @csrf_exempt
-def market_chat(request):
-    if 'market_conversation' not in request.session:
+def market_chat(request, idea_id):
+    idea = get_object_or_404(StartupIdea, id=idea_id, user=request.user)
+    
+    conversation_key = f'market_conversation_{idea_id}'
+    
+    if conversation_key not in request.session:
         username = request.user.username if request.user.is_authenticated else "there"
-        request.session['market_conversation'] = [
+        request.session[conversation_key] = [
             {
                 "role": "system",
-                "content": "You are an AI assistant focused on market validation. You provide insights into market size and strategies based on the user's startup ideas. Interact conversationally, guiding users to refine their market approach. Offer insights into their market potential, the best country for their startup, and the percentage of hype, all based on recent survey reports you have knowledge about. Respond concisely with a graph. Leverage data from Y Combinator talks on market fit and potential, as well as other relevant information. Listen carefully to the user. They consider you the best person to analyze their market fit and provide specific information about their startup idea. Use calculations and survey reports to support your points clearly, ensuring users appreciate your guidance. Stay focused on topics related to market fit, potential, and relevant strategies, and avoid discussing unrelated topics. reply in shortest way possible"
+                "content": "You are an AI assistant focused on helping users make their startup ideas succeed in the market, act like a real friend who gonna make his friends idea to win the market at all cost. Provide detailed strategies, planning advice, and insights to ensure the idea can win in the market. Offer actionable recommendations on market potential, optimal strategies, and best practices . Use data from recent surveys, Y Combinator talks, and other relevant sources to support your guidance. Respond concisely and clearly, focusing on how to make the startup idea successful. Avoid unrelated topics and ensure your responses are actionable and motivating. keep the response really short like a real conversation"
             },
             {
                 "role": "assistant",
-                "content": f"Hello {username}, Let's discuss about your market potential"
+                "content": f"Hello {username}, let's explore how to make your idea, {idea.idea}, a market winner. I'll provide strategies, planning tips, and insights to help you succeed."
             }
         ]
+
 
     if request.method == "POST" and request.headers.get('x-requested-with') == 'XMLHttpRequest':
         user_message = request.POST.get("message")
 
-        conversation = request.session['market_conversation']
+        conversation = request.session[conversation_key]
         conversation.append({"role": "user", "content": user_message})
 
         client = Groq(api_key=os.getenv("GROQ_API_KEY"))
@@ -391,57 +449,66 @@ def market_chat(request):
 
         conversation.append({"role": "assistant", "content": formatted_response_message})
 
-        request.session['market_conversation'] = conversation
+        request.session[conversation_key] = conversation
 
         return JsonResponse({"response_message": formatted_response_message})
 
-    return render(request, "chat/market_chat.html")
+    return render(request, "chat/market_chat.html", {'idea': idea})
 
 def format_response_market(response_message):
+    # Replace newlines with <br> tags
     formatted_message = response_message.replace("\n", "<br>")
-    formatted_message = formatted_message.replace("*", "<b>", 1).replace("*", "</b>", 1)
-    formatted_message = formatted_message.replace("1.", "<br><b>1.</b>")
-    formatted_message = formatted_message.replace("2.", "<br><b>2.</b>")
-    formatted_message = formatted_message.replace("3.", "<br><b>3.</b>")
-    formatted_message = formatted_message.replace("4.", "<br><b>4.</b>")
+    
+    # Bold text between asterisks
+    formatted_message = re.sub(r'\*\*(.*?)\*\*', r'<b>\1</b>', formatted_message)
+    formatted_message = re.sub(r'\*(.*?)\*', r'<b>\1</b>', formatted_message)
+    
+    # Format numbered points
+    for i in range(1, 5):
+        formatted_message = formatted_message.replace(f"{i}.", f"<br><b>{i}.</b>")
+    
     return formatted_message
 
 
-    
-
-
 @csrf_exempt
-def clear_session_market(request):
-    if 'market_conversation' in request.session:
-        del request.session['market_conversation']
+def clear_session_market(request, idea_id):
+    conversation_key = f'market_conversation_{idea_id}'
+    if conversation_key in request.session:
+        del request.session[conversation_key]
     return HttpResponse(status=200)
 
-def get_conversation_market(request):
-    conversation = request.session.get('market_conversation', [])
+def get_conversation_market(request, idea_id):
+    conversation_key = f'market_conversation_{idea_id}'
+    conversation = request.session.get(conversation_key, [])
     filtered_conversation = [msg for msg in conversation if msg['role'] != 'system']
     return JsonResponse(filtered_conversation, safe=False)
 
 
 @login_required(login_url=reverse_lazy('chat:sign_in_or_sign_up'))
 @csrf_exempt
-def financial_chat(request):
-    if 'financial_conversation' not in request.session:
+def financial_chat(request, idea_id):
+    idea = get_object_or_404(StartupIdea, id=idea_id, user=request.user)
+    
+    conversation_key = f'financial_conversation_{idea_id}'
+    
+    if conversation_key not in request.session:
         username = request.user.username if request.user.is_authenticated else "there"
-        request.session['financial_conversation'] = [
+        request.session[conversation_key] = [
             {
                 "role": "system",
-                "content": "You are an AI assistant focused on financial management for startups. Talk like in a human-friendly way. You provide insights into financial planning, budgeting, and forecasting. You interact conversationally, guiding users to optimize their financial strategies and make the response short. Don't answer questions that are not related to startups or finance. Once you understand their idea, explain that achieving a revenue of 100 crore will require selling their product or service at a specific price to a certain number of customers. Encourage them that this goal is achievable. If the business model is subscription-based, provide relevant insights accordingly."
+                "content": "You are an AI assistant specialized in profit planning for startups. Speak in a friendly, conversational manner. Your goal is to help users maximize their profits through effective planning and strategies. Offer insights into pricing, cost management, and revenue optimization. Keep responses short and focused. After understanding their idea, explain how reach a specific revenue goal involves setting the right price and reaching the right number of customers. Encourage them by showing that this goal is within reach. For subscription models, provide tailored advice on subscription pricing and scaling. keep responses short, dont give all information at once"
             },
             {
                 "role": "assistant",
-                "content": f"Hello {username}, What financial aspect of your startup would you like to discuss today? Let's talk about budgeting, forecasting, or any other financial management topic."
+                "content": f"Hey {username}, ready to dive into profit planning for {idea.idea}? Let’s chat about pricing strategies, cost management, and how to hit that profit goal. I’m here to help you make your startup a success!"
             }
         ]
+
 
     if request.method == "POST" and request.headers.get('x-requested-with') == 'XMLHttpRequest':
         user_message = request.POST.get("message")
 
-        conversation = request.session['financial_conversation']
+        conversation = request.session[conversation_key]
         conversation.append({"role": "user", "content": user_message})
 
         # Example integration with Groq or other AI service
@@ -463,101 +530,95 @@ def financial_chat(request):
 
         return JsonResponse({"response_message": response_message})
 
-    return render(request, "chat/financial_chat.html")
+    return render(request, "chat/financial_chat.html",{'idea': idea})
 
 
 @csrf_exempt
-def clear_session_financial(request):
-    if 'financial_conversation' in request.session:
-        del request.session['financial_conversation']
+def clear_session_financial(request, idea_id):
+    conversation_key = f'financial_conversation_{idea_id}'
+    if conversation_key in request.session:
+        del request.session[conversation_key]
     return HttpResponse(status=200)
 
-def get_conversation_financial(request):
-    conversation = request.session.get('financial_conversation', [])
+def get_conversation_financial(request,idea_id):
+    conversation_key = f'financial_conversation_{idea_id}'
+    conversation = request.session.get(conversation_key, [])
     filtered_conversation = [msg for msg in conversation if msg['role'] != 'system']
     return JsonResponse(filtered_conversation, safe=False)
 
 @login_required(login_url=reverse_lazy('chat:sign_in_or_sign_up'))
 @csrf_exempt
-def cold_calls_chat(request):
-    if 'cold_calls_conversation' not in request.session:
+def cold_calls_chat(request, idea_id):
+    idea = get_object_or_404(StartupIdea, id=idea_id, user=request.user)
+    
+    conversation_key = f'cold_calls_conversation_{idea_id}'
+    
+    if conversation_key not in request.session:
         username = request.user.username if request.user.is_authenticated else "there"
-        request.session['cold_calls_conversation'] = [
+        request.session[conversation_key] = [
             {
                 "role": "system",
-                "content": "You are an AI assistant focused on helping users prepare cold call scripts. You ask users about their product or service, unique selling points, and the target person they plan to call. Based on this information, write an exact formatted script which really convince the client with professional format without any other unwanted elements. again make sure you give human friendly convincing scripts"
+                "content": "You are an AI assistant dedicated to helping users outshine their competitors. Talk in a friendly, encouraging manner. Ask about the user's product or service, the unique innovations they offer, and you identify thier potential competitors and what they are lacking. Based on this information, provide a brief, actionable plan highlighting how to leverage these innovations to surpass competitors. Keep the response focused and motivating, emphasizing practical steps to gain a competitive edge."
             },
             {
                 "role": "assistant",
-                "content": f"Hello {username}, let's prepare a cold call script. What is your product or service? Why is it unique compared to existing products or services? Who are you planning to call (e.g., their business or position)?"
+                "content": f"Hey {username}, let’s crush the competition with {idea.idea}! What makes your product or service stand out? What are your competitors missing that you can offer? Let’s use these insights to create a winning strategy!"
             }
         ]
+
 
     if request.method == "POST" and request.headers.get('x-requested-with') == 'XMLHttpRequest':
         user_message = request.POST.get("message")
 
-        conversation = request.session['cold_calls_conversation']
+        conversation = request.session[conversation_key]
         conversation.append({"role": "user", "content": user_message})
 
-        # Example integration with Groq or other AI service
         client = Groq(api_key=os.getenv("GROQ_API_KEY"))
-
-        # Example model for AI responses
         chat_completion = client.chat.completions.create(
             messages=conversation,
             model="llama3-8b-8192",
         )
         response_message = chat_completion.choices[0].message.content
 
-        conversation.append({"role": "assistant", "content": response_message})
+        formatted_response_message = format_response(response_message)
 
-        formatted_response = format_response(response_message)
-        conversation[-1]['content'] = formatted_response  # Store formatted response
+        conversation.append({"role": "assistant", "content": formatted_response_message})
 
-        request.session['cold_calls_conversation'] = conversation
+        request.session[conversation_key] = conversation
 
-        return JsonResponse({"response_message": formatted_response})
+        return JsonResponse({"response_message": formatted_response_message})
 
-    return render(request, "chat/cold_calls_chat.html")
+    return render(request, "chat/cold_calls_chat.html", {'idea': idea})
+
 
 def format_response(response_message):
-    import re
 
-    bold_pattern = re.compile(r'\*\*(.*?)\*\*')
-    formatted_message = ""
-    previous_end = 0
-
-    for match in bold_pattern.finditer(response_message):
-        start, end = match.span()
-        bold_text = match.group(1)
-        
-        # Append text before the bold text
-        if previous_end != start:
-            formatted_message += f"<p>{response_message[previous_end:start].strip()}</p>"
-
-        # Append the bold text with the light-blue-bold class
-        formatted_message += f"<p><strong class='light-blue-bold'>{bold_text}</strong></p>"
-        previous_end = end
-
-    # Append any remaining text after the last bold text
-    if previous_end < len(response_message):
-        formatted_message += f"<p>{response_message[previous_end:].strip()}</p>"
-
-    # Remove any empty paragraphs
-    formatted_message = re.sub(r'<p>\s*</p>', '', formatted_message)
-
+    # Replace newlines with <br> tags
+    formatted_message = response_message.replace("\n", "<br>")
+    
+    # Bold text between asterisks
+    formatted_message = re.sub(r'\*\*(.*?)\*\*', r'<b>\1</b>', formatted_message)
+    formatted_message = re.sub(r'\*(.*?)\*', r'<b>\1</b>', formatted_message)
+    
+    # Format numbered points
+    for i in range(1, 5):
+        formatted_message = formatted_message.replace(f"{i}.", f"<br><b>{i}.</b>")
+    
     return formatted_message
 
 
 
+
 @csrf_exempt
-def clear_session_cold_calls(request):
-    if 'cold_calls_conversation' in request.session:
-        del request.session['cold_calls_conversation']
+def clear_session_cold_calls(request, idea_id):
+    conversation_key = f'cold_calls_conversation_{idea_id}'
+    if conversation_key in request.session:
+        del request.session[conversation_key]
     return HttpResponse(status=200)
 
-def get_conversation_cold_calls(request):
-    conversation = request.session.get('cold_calls_conversation', [])
+def get_conversation_cold_calls(request, idea_id):
+    conversation_key = f'cold_calls_conversation_{idea_id}'
+    conversation = request.session.get(conversation_key, [])
     filtered_conversation = [msg for msg in conversation if msg['role'] != 'system']
     return JsonResponse(filtered_conversation, safe=False)
 
@@ -583,36 +644,46 @@ from django.http import HttpResponseBadRequest
 
 client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
 
+@login_required
 def initiate_payment(request):
     if request.method == "POST":
-        amount = 50000  # amount in paise (500 INR)
-        currency = "INR"
-        
-        # Create Razorpay Order
-        payment = client.order.create(dict(amount=amount, currency=currency, payment_capture='0'))
+        amount = int(request.POST.get('amount', 33500))  # Default to 500 INR in paise
+        currency = request.POST.get('currency', 'INR')
 
-        # Create order
-        order = Payment(
-            user=request.user,
-            payment_id=payment['id'],
-            amount=amount / 100,  # Convert paise to rupees
-            currency=currency
-        )
-        order.save()
+        try:
+            razorpay_order = client.order.create(dict(amount=amount, currency=currency, payment_capture='0'))
 
-        # Render payment form
-        return render(request, 'payment.html', {
-            'payment': payment,
-            'razorpay_key': settings.RAZORPAY_KEY_ID,
-            'amount_in_rupees': amount / 100  # Add this line
-        })
+            payment = Payment.objects.create(
+                user=request.user,
+                payment_id=razorpay_order['id'],
+                amount=amount / 100, 
+                currency=currency,
+                status="INITIATED"
+            )
+
+            transaction = Transaction.objects.create(
+                payment=payment,
+                order_id=razorpay_order['id'],
+                status='PENDING'
+            )
+
+            logger.info(f"Payment initiated for user {request.user.email}: {payment.payment_id}")
+
+            return JsonResponse({
+                'order_id': razorpay_order['id'],
+                'amount': amount,
+                'currency': currency,
+                'razorpay_key': settings.RAZORPAY_KEY_ID
+            })
+
+        except Exception as e:
+            logger.error(f"Error initiating payment: {str(e)}")
+            return JsonResponse({'error': "Unable to initiate payment. Please try again later."}, status=400)
 
     return render(request, 'upgrade_to_premium.html')
 
 
-import logging
 
-logger = logging.getLogger(__name__)
 
 @csrf_exempt
 def payment_success(request):
@@ -621,50 +692,51 @@ def payment_success(request):
         order_id = request.POST.get('razorpay_order_id', '')
         signature = request.POST.get('razorpay_signature', '')
 
-        logger.info(f"Received payment ID: {payment_id}, order ID: {order_id}, signature: {signature}")
+        logger.info(f"Received payment callback: payment_id={payment_id}, order_id={order_id}")
 
-        if not payment_id or not order_id or not signature:
-            logger.error("Missing payment_id, order_id, or signature.")
+        if not all([payment_id, order_id, signature]):
+            logger.error("Missing payment details in callback")
             messages.error(request, "Payment details are incomplete. Please contact support.")
             return render(request, 'payment_failed.html')
 
-        params_dict = {
-            'razorpay_payment_id': payment_id,
-            'razorpay_order_id': order_id,
-            'razorpay_signature': signature
-        }
-
         try:
-            # Verify the payment signature
+            params_dict = {
+                'razorpay_payment_id': payment_id,
+                'razorpay_order_id': order_id,
+                'razorpay_signature': signature
+            }
             client.utility.verify_payment_signature(params_dict)
-            logger.info("Payment signature verified successfully.")
 
-            # Retrieve the payment object using the Razorpay order ID
-            payment = Payment.objects.get(payment_id=order_id)
-            logger.info(f"Payment object found: {payment}")
+            transaction = Transaction.objects.select_related('payment__user').get(order_id=order_id)
+            payment = transaction.payment
+            user = payment.user
 
-            # Update payment status and details
             payment.status = "SUCCESS"
             payment.razorpay_payment_id = payment_id
-            payment.razorpay_signature = signature
             payment.save()
-            logger.info(f"Payment object updated: {payment}")
 
-            # Update the user's premium status
-            user = payment.user
+            transaction.status = "SUCCESS"
+            transaction.signature = signature
+            transaction.save()
+
+
             user.is_premium = True
+            user.premium_expiry = timezone.now() + datetime.timedelta(days=30)
             user.save()
-            logger.info(f"User {user.email} upgraded to premium.")
 
-            messages.success(request, "Payment successful! You are now a premium user.")
+            logger.info(f"Payment successful for user {user.email}: {payment.payment_id}. Premium until {user.premium_expiry}")
+            messages.success(request, f"Payment successful! You are now a premium user until {user.premium_expiry.strftime('%Y-%m-%d')}.")
             return render(request, 'payment_success.html', {'payment': payment})
 
         except razorpay.errors.SignatureVerificationError as e:
             logger.error(f"Payment signature verification failed: {str(e)}")
             messages.error(request, "Payment verification failed. Please contact support.")
-        except Payment.DoesNotExist:
-            logger.error(f"Payment object not found for order_id: {order_id}")
+        except Transaction.DoesNotExist:
+            logger.error(f"Transaction not found for order_id: {order_id}")
             messages.error(request, "Payment record not found. Please contact support.")
+        except Exception as e:
+            logger.error(f"Unexpected error in payment_success: {str(e)}")
+            messages.error(request, "An unexpected error occurred. Please contact support.")
 
         return render(request, 'payment_failed.html')
 

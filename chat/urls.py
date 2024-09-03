@@ -15,21 +15,21 @@ urlpatterns = [
 
     path('pitch/',start_pitch,name='start_pitch'),
 
-    path('chat/', chat_view, name='chat_view'),
-    path('clear_session/', clear_session, name='clear_session'),
-    path('get_conversation/', get_conversation, name='get_conversation'),
+    path('idea/<int:idea_id>/chat/', chat_view, name='chat_view'),
+    path('idea/<int:idea_id>/clear_session/', clear_session, name='clear_session'),
+    path('idea/<int:idea_id>/get_conversation/', get_conversation, name='get_conversation'),
 
-    path('market_chat/', market_chat, name='market_chat'),
-    path('clear_session_market/', clear_session_market, name='clear_session_market'),
-    path('get_conversation_market/', get_conversation_market, name='clear_session_market'),
+    path('idea/<int:idea_id>/market_chat/', market_chat, name='market_chat'),
+    path('idea/<int:idea_id>/clear_session_market/', clear_session_market, name='clear_session_market'),
+    path('idea/<int:idea_id>/get_conversation_market/', get_conversation_market, name='get_conversation_market'),
 
-    path('financial_chat/', financial_chat, name='financial_chat'),
-    path('clear_session_financial/', clear_session_financial, name='clear_session_financial'),
-    path('get_conversation_financial/', get_conversation_financial, name='get_conversation_financial'),
+    path('idea/<int:idea_id>/financial_chat/', financial_chat, name='financial_chat'),
+    path('idea/<int:idea_id>/clear_session_financial/', clear_session_financial, name='clear_session_financial'),
+    path('idea/<int:idea_id>/get_conversation_financial/', get_conversation_financial, name='get_conversation_financial'),
 
-    path('cold_calls_chat/', cold_calls_chat, name='cold_calls_chat'),
-    path('clear_session_cold_calls/', clear_session_cold_calls, name='clear_session_cold_calls'),
-    path('get_conversation_cold_calls/', get_conversation_cold_calls, name='get_conversation_cold_calls'),
+    path('idea/<int:idea_id>/cold_calls_chat/', cold_calls_chat, name='cold_calls_chat'),
+    path('idea/<int:idea_id>/clear_session_cold_calls/', clear_session_cold_calls, name='clear_session_cold_calls'),
+    path('idea/<int:idea_id>/get_conversation_cold_calls/', get_conversation_cold_calls, name='get_conversation_cold_calls'),
 
     path('submit_feedback/',submit_feedback, name='submit_feedback'),
     

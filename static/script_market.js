@@ -1,4 +1,14 @@
 document.addEventListener("DOMContentLoaded", () => {
+    const getIdeaId = () => {
+        const bodyElement = document.body;
+        const ideaId = bodyElement.dataset.ideaId;
+        if (!ideaId) {
+            console.error("Idea ID not found in body data attribute");
+            return null;
+        }
+        return ideaId;
+    };
+
     const chatContainer = document.querySelector(".chat-container");
     const chatInput = document.querySelector("#chat-input");
     const sendButton = document.querySelector("#send-btn");
@@ -31,15 +41,19 @@ document.addEventListener("DOMContentLoaded", () => {
         const chats = document.querySelectorAll(".chat");
         chats.forEach(chat => chat.remove());
 
+        const ideaId = getIdeaId();
+        if (!ideaId) return;
+
         $.ajax({
             type: "POST",
-            url: "/clear_session_market/",
+            url: `/idea/${ideaId}/clear_session_market/`,
             headers: {
                 'X-Requested-With': 'XMLHttpRequest',
                 'X-CSRFToken': csrfToken
             },
             success: function(response) {
                 console.log("Session data cleared successfully.");
+                loadChatHistory(); // Reload the initial message after clearing
             },
             error: function(xhr, textStatus, errorThrown) {
                 console.error("Failed to clear session data:", errorThrown);
@@ -58,20 +72,23 @@ document.addEventListener("DOMContentLoaded", () => {
         chatDiv.appendChild(chatDetails);
         return chatDiv;
     };
-    
 
     const scrollToBottom = () => {
         chatContainer.scrollTo(0, chatContainer.scrollHeight);
     };
 
     const loadChatHistory = () => {
+        const ideaId = getIdeaId();
+        if (!ideaId) return;
+
         $.ajax({
             type: "GET",
-            url: "/get_conversation_market/",
+            url: `/idea/${ideaId}/get_conversation_market/`,
             headers: {
                 'X-Requested-With': 'XMLHttpRequest'
             },
             success: function(response) {
+                chatContainer.innerHTML = ''; // Clear existing chats
                 if (response.length === 0) {
                     // Append the initial AI message with a special class
                     const initialMessage = "What is your Market strategy?";
@@ -96,8 +113,6 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         });
     };
-    
-    
 
     const sendMessage = () => {
         const userMessage = chatInput.value.trim();
@@ -126,18 +141,19 @@ document.addEventListener("DOMContentLoaded", () => {
         chatContainer.appendChild(typingAnimation);
         scrollToBottom();
 
-        const csrfTokenInput = document.querySelector('input[name="csrfmiddlewaretoken"]');
-        const csrfToken = csrfTokenInput ? csrfTokenInput.value : '';
+        const ideaId = getIdeaId();
+        if (!ideaId) return;
 
         $.ajax({
             type: "POST",
-            url: "/market_chat/",
+            url: `/idea/${ideaId}/market_chat/`,
             data: {
                 message: userMessage,
                 csrfmiddlewaretoken: csrfToken
             },
             headers: {
-                'X-Requested-With': 'XMLHttpRequest'
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRFToken': csrfToken
             },
             success: function(response) {
                 typingAnimation.remove();

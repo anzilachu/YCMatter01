@@ -5,14 +5,39 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Payment Successful</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'custom-orange': '#FF6600',
+                    }
+                }
+            }
+        }
+    </script>
 </head>
-<body class="bg-gray-100 min-h-screen flex items-center justify-center">
-    <div class="bg-white p-8 rounded-lg shadow-md max-w-md w-full text-center">
-        <h1 class="text-3xl font-bold mb-6 text-green-600">Payment Successful!</h1>
-        <p class="text-gray-600 mb-6">Thank you for upgrading to premium. Your account has been successfully upgraded.</p>
-        <a href="{% url 'chat:home' %}" class="bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition duration-300 ease-in-out">
-            Return to Home
-        </a>
+<body class="bg-white min-h-screen flex items-center justify-center font-['Poppins']">
+    <div class="max-w-md w-full">
+        <div class="bg-custom-orange text-white p-8 rounded-t-3xl shadow-lg">
+            <svg class="w-24 h-24 mx-auto mb-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <h1 class="text-4xl font-bold text-center">Payment Successful!</h1>
+        </div>
+        <div class="bg-white p-8 rounded-b-3xl shadow-lg border-t-4 border-custom-orange">
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="mb-6 p-4 {% if message.tags == 'success' %}bg-green-100 text-green-700{% else %}bg-red-100 text-red-700{% endif %} rounded-lg">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+            <a href="{% url 'chat:home' %}" class="block w-full bg-custom-orange text-white py-3 px-8 rounded-full font-semibold text-lg hover:bg-opacity-90 transition duration-300 ease-in-out text-center">
+                Return to Home
+            </a>
+        </div>
     </div>
 </body>
 </html>

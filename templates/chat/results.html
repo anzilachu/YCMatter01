@@ -81,12 +81,19 @@
             margin-top: 20px;
         }
         .chat-categories {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 30px;
+            max-width: 1200px; /* Adjust this value as needed */
+            margin: 0 auto;
         }
         .btn {
-            display: inline-block;
+            flex: 1 1 200px; /* This allows the buttons to grow and shrink */
+            max-width: 250px; /* Prevents buttons from becoming too wide */
+            display: flex;
+            align-items: center;
+            justify-content: center;
             padding: 12px 24px;
             background-color: #3498db;
             color: white;
@@ -196,6 +203,9 @@
             .chat-btn-2, .chat-btn-3, .chat-btn-4 {
                 position: relative;
             }
+            .chat-box {
+                width: 250px;
+            }
             @media (max-width: 768px) {
                 #exit-btn {
                     position: fixed;
@@ -211,13 +221,44 @@
                     margin-right: 10px;
                     outline: 1px solid var(--incoming-chat-border);
                 }
+                .chat-categories {
+                    flex-direction: column;
+                    align-items: center;
+                }
+               
             }
+            .tooltip {
+            position: relative;
+            display: inline-block;
+        }
+
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 200px;
+            background-color: #555;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 5px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -100px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
     </style>
 </head>
-<body>
+<body data-idea-id="{{ idea.id }}">
     
     <!-- <a href="{% url 'chat:home' %}" class="exit-btn"><i class="fas fa-times"></i></a> -->
-    <button id="exit-btn" class="material-symbols-rounded" onclick="history.back()">exit_to_app</button>
+    <!-- <button id="exit-btn" class="material-symbols-rounded" onclick="history.back()">exit_to_app</button> -->
     <div class="container">
         <main class="content">
             <section class="chart-section">
@@ -229,35 +270,17 @@
                 </div>
             </section>
             <section class="chat-categories">
-                <a href="{% url 'chat:chat_view' %}" class="btn chat-btn-1"><i class="fas fa-lightbulb"></i> Startup Talk</a>
+                <a href="{% url 'chat:chat_view' idea_id=idea.id %}" class="btn chat-btn-1 chat-box"><i class="fas fa-lightbulb"></i>&nbsp;&nbsp; Brainstorming Idea</a>
                 
-                {% if user.is_premium %}
-                    <a href="{% url 'chat:market_chat' %}" class="btn chat-btn-2">
-                        <i class="fas fa-bullhorn"></i> How to sell
-                        <span class="premium-tag">PREMIUM</span>
+                    <a href="{% url 'chat:market_chat' idea_id=idea.id %}" class="btn chat-btn-2 chat-box">
+                        <i class="fas fa-bullhorn"></i>&nbsp;&nbsp; Conquer the Market
                     </a>
-                    <a href="{% url 'chat:financial_chat' %}" class="btn chat-btn-3">
-                        <i class="fas fa-chart-line"></i> Financial Planning
-                        <span class="premium-tag">PREMIUM</span>
+                    <a href="{% url 'chat:financial_chat' idea_id=idea.id %}" class="btn chat-btn-3 chat-box">
+                        <i class="fas fa-chart-line"></i>&nbsp;&nbsp; Profit Planning
                     </a>
-                    <a href="{% url 'chat:cold_calls_chat' %}" class="btn chat-btn-3">
-                        <i class="fas fa-phone"></i> Cold Call Automation
-                        <span class="premium-tag">PREMIUM</span>
+                    <a href="{% url 'chat:cold_calls_chat' idea_id=idea.id %}" class="btn chat-btn-4 chat-box">
+                        <i class="fas fa-chess-king"></i>&nbsp;&nbsp; Win Competitors
                     </a>
-                {% else %}
-                    <a href="{% url 'chat:initiate_payment' %}" class="btn chat-btn-2">
-                        <i class="fas fa-bullhorn"></i> How to sell
-                        <span class="premium-tag">PREMIUM</span>
-                    </a>
-                    <a href="{% url 'chat:initiate_payment' %}" class="btn chat-btn-3">
-                        <i class="fas fa-chart-line"></i> Financial Planning
-                        <span class="premium-tag">PREMIUM</span>
-                    </a>
-                    <a href="{% url 'chat:initiate_payment' %}" class="btn chat-btn-3">
-                        <i class="fas fa-phone"></i> Cold call Automation
-                        <span class="premium-tag">PREMIUM</span>
-                    </a>
-                {% endif %}
             </section>
             <section id="analysis">
                 {{ analysis|safe }}
@@ -265,70 +288,93 @@
         </main>
     </div>
     <script>
-    function createMarketPotentialChart(data) {
-        const chartContainer = document.getElementById('chartContainer');
+        function createMarketPotentialChart(data) {
+            const chartContainer = document.getElementById('chartContainer');
     
-    if (Object.keys(data.scores).length === 0) {
-        chartContainer.style.display = 'none';
-        return;
-    }
-
-    chartContainer.style.display = 'block';
-
-    const ctx = document.getElementById('marketPotentialChart').getContext('2d');
-    const colors = [
-        'rgba(255, 99, 132, 0.7)',
-        'rgba(54, 162, 235, 0.7)',
-        'rgba(255, 206, 86, 0.7)',
-        'rgba(75, 192, 192, 0.7)',
-        'rgba(153, 102, 255, 0.7)',
-    ];
-
-        new Chart(ctx, {
-            type: 'polarArea',
-            data: {
-                labels: Object.keys(data.scores),
-                datasets: [{
-                    label: 'Market Potential',
-                    data: Object.values(data.scores),
-                    backgroundColor: colors.slice(0, Object.keys(data.scores).length),
-                    borderColor: colors.slice(0, Object.keys(data.scores).length).map(color => color.replace('0.7', '1')),
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    r: {
-                        angleLines: { display: true },
-                        suggestedMin: 0,
-                        suggestedMax: 10
-                    }
+            if (Object.keys(data.scores).length === 0) {
+                chartContainer.style.display = 'none';
+                return;
+            }
+    
+            chartContainer.style.display = 'block';
+    
+            const ctx = document.getElementById('marketPotentialChart').getContext('2d');
+            const colors = [
+                'rgba(255, 99, 132, 0.7)',
+                'rgba(54, 162, 235, 0.7)',
+                'rgba(255, 206, 86, 0.7)',
+                'rgba(75, 192, 192, 0.7)',
+                'rgba(153, 102, 255, 0.7)',
+            ];
+    
+            new Chart(ctx, {
+                type: 'polarArea',
+                data: {
+                    labels: Object.keys(data.scores),
+                    datasets: [{
+                        label: 'Market Potential',
+                        data: Object.values(data.scores),
+                        backgroundColor: colors.slice(0, Object.keys(data.scores).length),
+                        borderColor: colors.slice(0, Object.keys(data.scores).length).map(color => color.replace('0.7', '1')),
+                        borderWidth: 1
+                    }]
                 },
-                plugins: {
-                    legend: {
-                        position: 'bottom'
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            angleLines: { display: true },
+                            suggestedMin: 0,
+                            suggestedMax: 10
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
                     }
                 }
+            });
+        }
+    
+        const scores = JSON.parse('{{ scores|escapejs }}');
+        createMarketPotentialChart({scores: scores});
+    
+        document.getElementById('toggleAnalysis').addEventListener('click', function() {
+            const analysis = document.getElementById('analysis');
+            if (analysis.style.display === 'none' || analysis.style.display === '') {
+                analysis.style.display = 'block';
+                this.textContent = 'Hide Analysis Report';
+                analysis.scrollIntoView({ behavior: 'smooth' });
+            } else {
+                analysis.style.display = 'none';
+                this.textContent = 'See Analysis Report';
             }
         });
-    }
-
-    const scores = JSON.parse('{{ scores|escapejs }}');
-    createMarketPotentialChart({scores: scores});
-
-    document.getElementById('toggleAnalysis').addEventListener('click', function() {
-        const analysis = document.getElementById('analysis');
-        if (analysis.style.display === 'none' || analysis.style.display === '') {
-            analysis.style.display = 'block';
-            this.textContent = 'Hide Analysis Report';
-            analysis.scrollIntoView({ behavior: 'smooth' });
-        } else {
-            analysis.style.display = 'none';
-            this.textContent = 'See Analysis Report';
-        }
-    });
+    
+        document.addEventListener('DOMContentLoaded', function() {
+            const buttons = document.querySelectorAll('.chat-categories a');
+            const tooltips = {
+                'chat-btn-1': 'Brainstorm and refine your startup idea with AI-powered insights',
+                'chat-btn-2': 'Plan how to win the current market with professional AI',
+                'chat-btn-3': 'Let us plan your profit flow with experiened AI with case studies ',
+                'chat-btn-4': 'This Data-driven AI makes you better than your competitors'
+            };
+    
+            buttons.forEach(button => {
+                const tooltipDiv = document.createElement('div');
+                tooltipDiv.className = 'tooltip';
+                button.parentNode.insertBefore(tooltipDiv, button);
+                tooltipDiv.appendChild(button);
+    
+                const tooltipText = document.createElement('span');
+                tooltipText.className = 'tooltiptext';
+                tooltipText.textContent = tooltips[button.className.split(' ')[1]];
+                tooltipDiv.appendChild(tooltipText);
+            });
+        });
     </script>
+    
 </body>
 </html>

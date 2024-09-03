@@ -12,13 +12,13 @@
     <link href="css/fontawesome.min.css" rel="stylesheet" type="text/css" />
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap">
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
-    <title>Contact | YCMatters </title>
+    <title>Contact | YCLens </title>
 </head>
 <body>
     <nav>
         <div class="nav__header">
           <div class="nav__logo">
-            <a href="{% url 'chat:home' %}"><span>YC</span>Matters</a>
+            <a href="{% url 'chat:home' %}"><span>YC</span>Lens</a>
           </div>
           <div class="nav__menu__btn" id="menu-btn">
             <span><i class="ri-menu-line"></i></span>
@@ -30,7 +30,6 @@
           <li><a href="{% url 'chat:contact' %}">Contact</a></li>
           {% if user.is_authenticated %}
             <li><a href="{% url 'chat:idea_list' %}">My Ideas</a></li>
-            <li><a href="{% url 'chat:initiate_payment' %}">Pricing</a></li>
         {% endif %}
           <li class="mobile-login">
             {% if user.is_authenticated %}
@@ -133,13 +132,17 @@
 
         }
         #yc_contact {
-            padding-top: 40px;
+            padding-top: 90px;
+            height: 100vh;
+        }
+        #yc_contact h1{
+            font-size: 1.5rem;
         }
         }
     </style>
     <section id="yc_contact">
         <div class="container">
-            <h1>Contact YCMatters</h1>
+            <h1>Contact YCLens</h1>
             <p>Have questions or feedback? Feel free to reach out to us!</p>
             <div class="contact-form">
                 <form id="contact-form">

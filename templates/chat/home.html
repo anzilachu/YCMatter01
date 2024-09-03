@@ -10,7 +10,7 @@
     />
     <link rel="stylesheet" href="{% static 'styles.css' %}" />
     <link href="css/fontawesome.min.css" rel="stylesheet" type="text/css" />
-    <title>YCMatters | Startup hub</title>
+    <title>YCLens | Startup hub</title>
 </head>
 <style>
   @media (max-width: 768px) {
@@ -23,13 +23,14 @@
       background-color: var(--primary-color);
       margin-top:-17px;
     }
-}
+  }
+
 </style>
 <body>
     <nav>
       <div class="nav__header">
         <div class="nav__logo">
-          <a href="{% url 'chat:home' %}"><span>YC</span>Matters</a>
+          <a href="{% url 'chat:home' %}"><span>YC</span>Lens</a>
         </div>
         <div class="nav__menu__btn" id="menu-btn">
           <span><i class="ri-menu-line"></i></span>
@@ -41,7 +42,6 @@
         <li><a href="{% url 'chat:contact' %}">Contact</a></li>
         {% if user.is_authenticated %}
             <li><a href="{% url 'chat:idea_list' %}">My Ideas</a></li>
-            <li><a href="{% url 'chat:initiate_payment' %}">Pricing</a></li>
         {% endif %}
         <li class="mobile-login">
           {% if user.is_authenticated %}
@@ -67,10 +67,11 @@
       </div>
     </nav>
 
+  <section class="hero-1">
     <div class="header__content">
-      <h1>" Make something people want "<br /> <span style="font-size: 18px;">- Paul Graham, Y Combinator</span></h1>
-      <p>
-          We provide direct access to Y Combinator's insights and interview preparation using advanced AI. Our platform offers interactive sessions with a virtual YC advisor, delivering personalized advice and feedback to aspiring startup founders.
+      <h1 class="big-font">Make something <br><span>people want</span> <br /> <span style="font-size: 18px;">- Paul Graham, Y Combinator</span></h1>
+      <p style="color: gray;">
+        Derived from research on YC Youtube channel and real founder experiences
       </p>
       <div class="button-container">
           <div class="chat-container">
@@ -83,91 +84,95 @@
               </form>
           </div>
           <a href="{% url 'chat:start_pitch' %}">
-            <button class="btn-secondary">Interview Pitch</button>
+            <button class="btn-secondary">Pitch Practice</button>
         </a>
       </div>
     </div>
+    </section>
 
     <div class="yt-auto-scroll-container">
       <div class="yt-auto-scroll">
           <div class="yt-auto-scroll-item">
-              <a href="https://youtu.be/pU13n8kAvP4?si=Fg_VAWPQgO0pQ7G1" target="_blank">
-                  <img src="{% static 'yt-image1.webp' %}" alt="YouTube Video 1">
+              <a href="https://youtu.be/5d8tOtdcN2Q?si=GjC5SYHijG3kEuSw" target="_blank">
+                  <img src="{% static 'thumbnail2.webp' %}" alt="YouTube Video 1">
               </a>
           </div>
           <div class="yt-auto-scroll-item">
-              <a href="https://youtu.be/y6YIWntdA6U?si=0NvXQ1pdVXvk5Ekc" target="_blank">
-                  <img src="{% static 'yt-image2.webp' %}" alt="YouTube Video 2">
+              <a href="https://youtu.be/8SOtQwSf7A8?si=ST_ZHfaes8QBEOhN" target="_blank">
+                  <img src="{% static 'thumbnail3.webp' %}" alt="YouTube Video 2">
               </a>
           </div>
           <div class="yt-auto-scroll-item">
-              <a href="https://youtu.be/ZA_WqDO47-E?si=xrOfvzzuToYIfQ3G" target="_blank">
-                  <img src="{% static 'yt-image3.webp' %}" alt="YouTube Video 3">
+              <a href="https://youtu.be/2WcJpW69mwA?si=kVIE46Hzy5DkgkT3" target="_blank">
+                  <img src="{% static 'thumbnail4.webp' %}" alt="YouTube Video 3">
               </a>
           </div>
           <div class="yt-auto-scroll-item">
-              <a href="https://youtu.be/cq8aPDzgCKk?si=o2-0rwSj2c0DqrmQ" target="_blank">
-                  <img src="{% static 'yt-image4.webp' %}" alt="YouTube Video 4">
+              <a href="https://youtu.be/RqIqlmb8BYM?si=U4ZyF-zpBiiAFGLw" target="_blank">
+                  <img src="{% static 'thumbnail5.webp' %}" alt="YouTube Video 4">
               </a>
           </div>
           <div class="yt-auto-scroll-item">
-            <a href="https://youtu.be/al-15mMAS18?si=Oqww8Fa2tG-3WwsB" target="_blank">
-                <img src="{% static 'yt-image5.webp' %}" alt="YouTube Video 5">
+            <a href="https://youtu.be/spGQpp7twgs?si=9wnbE2SGasMvdBgj" target="_blank">
+                <img src="{% static 'thumbnail6.webp' %}" alt="YouTube Video 5">
             </a>
         </div>
         <div class="yt-auto-scroll-item">
-          <a href="https://youtu.be/KxjPgGLVJSg?si=G8wAgk6mXlh7c4_9" target="_blank">
-              <img src="{% static 'yt-image6.webp' %}" alt="YouTube Video 6">
+          <a href="https://youtu.be/PjaKQgV9PRk?si=TZdUPevrB2viUgOw" target="_blank">
+              <img src="{% static 'thumbnail7.webp' %}" alt="YouTube Video 6">
           </a>
       </div>
       <div class="yt-auto-scroll-item">
-        <a href="https://youtu.be/CYdsh1FhpI4?si=uHyumw7vXTU_MbLs" target="_blank">
-            <img src="{% static 'yt-image7.webp' %}" alt="YouTube Video 7">
+        <a href="https://youtu.be/aOGMymXPgrk?si=ht36CvzT08uggEaN" target="_blank">
+            <img src="{% static 'thumnail1.webp' %}" alt="YouTube Video 7">
         </a>
     </div>
           <!-- Repeat items as needed for continuous scroll effect -->
       </div>
   </div>
-  
-    
+  <h1 style="text-align: center;">From success stories of <span style="color: #FF6600;">EO Studio</span> 👆</h1>
+
   <section class="features">
-    <h2 class="section-title">Our Features</h2>
     <div class="feature-grid">
       <div class="feature-card">
         <div class="feature-icon">
           <i class="ri-lightbulb-line"></i>
         </div>
-        <h3>Idea Valuation</h3>
+        <h3>Brainstorming</h3>
         <p>Evaluate and validate your startup ideas with our expert analysis.</p>
       </div>
       <div class="feature-card">
         <div class="feature-icon">
           <i class="ri-question-line"></i>
         </div>
-        <h3>Startup Doubts</h3>
-        <p>Get answers to your pressing questions about launching and growing your startup.</p>
+        <h3>Market Potential</h3>
+        <p>Gain insights into your target market with comprehensive market analysis.</p>
       </div>
       <div class="feature-card">
         <div class="feature-icon">
           <i class="ri-bar-chart-box-line"></i>
         </div>
-        <h3>Market Study</h3>
-        <p>Gain insights into your target market with comprehensive market analysis.</p>
+        <h3>Profit Planning</h3>
+        <p>From the data of 1000+ case studies we help you plan your profit</p>
       </div>
       <div class="feature-card">
         <div class="feature-icon">
           <i class="ri-team-line"></i>
         </div>
-        <h3>10 Min Interview</h3>
+        <h3>10 Min Pitch</h3>
         <p>Practice your pitch with our simulated YC interview experience.</p>
       </div>
     </div>
   </section>
 
+  <div class="header__content__new">
+    <h1>A Friend to Your Startup Dream <br><span>Let's Bring Your Ideas to Life Together!</span></h1>
+  </div>
+
   <section class="community-section">
     <div class="community-content">
       <h2>Building a Community for Tomorrow's Innovators</h2>
-      <p>At YCMatters, we're more than just a platform – we're your lifelong partners in innovation. Join a thriving community of visionaries, disruptors, and game-changers who are shaping the future.</p>
+      <p>At YCLens, we're more than just a platform – we're your lifelong partners in innovation. Join a thriving community of visionaries, disruptors, and game-changers who are shaping the future.</p>
       <div class="community-features">
         <div class="feature">
           <i class="ri-team-line"></i>
@@ -188,51 +193,18 @@
       <a id="scrollButton" class="btn-primary">Join Our Community</a>
     </div>
     <div class="community-images">
-      <img src="{% static 'ycm_team.jpeg' %}" alt="Collaborative workspace" class="community-image-1">
+      <img src="{% static 'yclens.webp' %}" alt="Collaborative workspace" class="community-image-1">
     </div>
   </section>
 
-  <section class="million-dollar-section">
-    <h2>When Will You Hit Your First $1 Million in Revenue?</h2>
-    <p>Let's predict your startup's journey to the million-dollar milestone!</p>
-    <div class="million-dollar-calculator">
-      <div class="input-group">
-        <label for="startup-type">What's your startup type?</label>
-        <select id="startup-type">
-          <option value="saas">SaaS</option>
-          <option value="ecommerce">E-commerce</option>
-          <option value="marketplace">Marketplace</option>
-          <option value="hardware">Hardware</option>
-        </select>
-      </div>
-      <div class="input-group">
-        <label for="funding">Initial funding (in $):</label>
-        <input type="number" id="funding" min="0" step="1000" placeholder="e.g., 50000">
-      </div>
-      <div class="input-group">
-        <label for="team-size">Team size:</label>
-        <input type="number" id="team-size" min="1" max="100" placeholder="e.g., 5">
-      </div>
-      <button id="calculate-btn" class="btn-primary">Calculate</button>
-    </div>
-    <div id="result" class="million-dollar-result">
-      <h3>Your $1 Million Prediction</h3>
-      <p>Based on our totally-not-made-up algorithm...</p>
-      <div class="result-box">
-        <span id="years">?</span>
-        <span>years</span>
-      </div>
-      <p id="funny-message"></p>
-    </div>
-  </section>
-
-  
-
+  <div class="header__content__new">
+    <h1><span>making something great</span>  is much harder <br>than making money</h1>
+  </div>
 
 <section class="newsletter-section">
   <div class="newsletter-container">
     <div class="newsletter-content">
-      <h2>Join the YCMatters Community</h2>
+      <h2>Join the YCLens Community</h2>
       <p>Get Discord Access ,exclusive insights, founder stories, and startup resources delivered straight to your inbox.</p>
     </div>
     <form class="newsletter-form" id="newsletter-form">
@@ -249,142 +221,109 @@
 </section>
 
 <script>
-document.getElementById('newsletter-form').addEventListener('submit', function(e) {
-  e.preventDefault();
-  
-  const emailField = document.getElementById('newsletter-email');
-  const messageField = document.getElementById('newsletter-message');
-  const email = emailField.value;
-  
-  fetch('{% url "chat:join_community" %}', {
-      method: 'POST',
-      headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-          'X-CSRFToken': '{{ csrf_token }}'
-      },
-      body: new URLSearchParams({
-          'email': email
-      })
-  })
-  .then(response => response.json())
-  .then(data => {
-      if (data.success) {
-          messageField.style.display = 'block';
-          messageField.style.color = 'white';
-          messageField.textContent = data.message;
-          emailField.value = ''; // Clear the input field
-      } else {
-          messageField.style.display = 'block';
-          messageField.style.color = 'red';
-          messageField.textContent = data.message;
-      }
-  })
-  .catch(error => {
-      messageField.style.display = 'block';
-      messageField.style.color = 'red';
-      messageField.textContent = 'An error occurred. Please try again.';
+  document.getElementById('newsletter-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const emailField = document.getElementById('newsletter-email');
+    const messageField = document.getElementById('newsletter-message');
+    const email = emailField.value;
+    
+    fetch('{% url "chat:join_community" %}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: new URLSearchParams({
+            'email': email
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            messageField.style.display = 'block';
+            messageField.style.color = 'white';
+            messageField.textContent = data.message;
+            emailField.value = ''; // Clear the input field
+        } else {
+            messageField.style.display = 'block';
+            messageField.style.color = 'red';
+            messageField.textContent = data.message;
+        }
+    })
+    .catch(error => {
+        messageField.style.display = 'block';
+        messageField.style.color = 'red';
+        messageField.textContent = 'An error occurred. Please try again.';
+    });
   });
-});
-</script>
-
+  </script>
   
     
-  <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.slim.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
-
-    <script src="https://unpkg.com/scrollreveal"></script>
-    <script src="{% static 'main.js' %}"></script>
-    <script>
-      document.getElementById('scrollButton').addEventListener('click', function() {
-          document.querySelector('.newsletter-container').scrollIntoView({
-              behavior: 'smooth'
-          });
-      });
-      document.addEventListener('DOMContentLoaded', () => {
-          const container = document.querySelector('.yt-auto-scroll');
-          const items = document.querySelectorAll('.yt-auto-scroll-item');
+      
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
   
-          // Clone items for a smooth infinite scroll effect
-          items.forEach(item => {
-              const clone = item.cloneNode(true);
-              container.appendChild(clone);
-          });
-      });
-  </script>
-  <script>
-    document.addEventListener('DOMContentLoaded', function() {
-            const dropdownToggle = document.querySelector('.dropdown-toggle');
-            const dropdownMenu = document.querySelector('.dropdown-menu');
-
-            dropdownToggle.addEventListener('click', function(e) {
-                e.stopPropagation();
-                this.parentElement.classList.toggle('active');
-            });
-
-            window.addEventListener('click', function() {
-                const dropdowns = document.querySelectorAll('.dropdown');
-                dropdowns.forEach(dropdown => {
-                    if (dropdown.classList.contains('active')) {
-                        dropdown.classList.remove('active');
-                    }
-                });
-            });
-            const form = document.getElementById('chat-form');
-            const input = document.getElementById('chat-input');
-
-            form.addEventListener('submit', function(event) {
-                if (input.value.trim() === '') {
-                    event.preventDefault(); // Prevent form submission
-                }
+      <script src="https://unpkg.com/scrollreveal"></script>
+      <script src="{% static 'main.js' %}"></script>
+      <script>
+        document.getElementById('scrollButton').addEventListener('click', function() {
+            document.querySelector('.newsletter-container').scrollIntoView({
+                behavior: 'smooth'
             });
         });
-
-        document.addEventListener('DOMContentLoaded', function() {
-            const chatButton = document.getElementById('chat-button');
-            const chatInput = document.querySelector('.chat-input');
-            const buttonContainer = document.querySelector('.button-container');
-
-            chatButton.addEventListener('click', function() {
-                chatButton.style.display = 'none';
-                chatInput.classList.add('active');
-                buttonContainer.classList.add('input-active');
-                document.getElementById('chat-input').focus();
+        document.addEventListener('DOMContentLoaded', () => {
+            const container = document.querySelector('.yt-auto-scroll');
+            const items = document.querySelectorAll('.yt-auto-scroll-item');
+    
+            // Clone items for a smooth infinite scroll effect
+            items.forEach(item => {
+                const clone = item.cloneNode(true);
+                container.appendChild(clone);
             });
         });
     </script>
     <script>
-      document.getElementById('calculate-btn').addEventListener('click', function() {
-        const startupType = document.getElementById('startup-type').value;
-        const funding = parseInt(document.getElementById('funding').value) || 0;
-        const teamSize = parseInt(document.getElementById('team-size').value) || 1;
-        
-        // This is a fun, mock calculation - not based on real data!
-        const baseYears = {
-          'saas': 3,
-          'ecommerce': 4,
-          'marketplace': 5,
-          'hardware': 6
-        };
-        
-        let years = baseYears[startupType];
-        years -= Math.log(funding/10000 + 1);
-        years += Math.log(teamSize);
-        years = Math.max(1, Math.round(years));
-        
-        document.getElementById('years').textContent = years;
-        
-        const funnyMessages = [
-          "Remember, Rome wasn't built in a day, but they didn't have Wi-Fi.",
-          "Pro tip: Counting your millions takes longer than you think.",
-          "Warning: Side effects may include excessive high-fiving and sudden yacht shopping.",
-          "Disclaimer: This prediction is about as reliable as a weather forecast. Plan accordingly!",
-          "Fun fact: In the time it took to calculate this, Elon Musk probably made another million."
-        ];
-        
-        document.getElementById('funny-message').textContent = funnyMessages[Math.floor(Math.random() * funnyMessages.length)];
-        
-        document.getElementById('result').style.display = 'block';
-      });
+      document.addEventListener('DOMContentLoaded', function() {
+              const dropdownToggle = document.querySelector('.dropdown-toggle');
+              const dropdownMenu = document.querySelector('.dropdown-menu');
+  
+              dropdownToggle.addEventListener('click', function(e) {
+                  e.stopPropagation();
+                  this.parentElement.classList.toggle('active');
+              });
+  
+              window.addEventListener('click', function() {
+                  const dropdowns = document.querySelectorAll('.dropdown');
+                  dropdowns.forEach(dropdown => {
+                      if (dropdown.classList.contains('active')) {
+                          dropdown.classList.remove('active');
+                      }
+                  });
+              });
+              const form = document.getElementById('chat-form');
+              const input = document.getElementById('chat-input');
+  
+              form.addEventListener('submit', function(event) {
+                  if (input.value.trim() === '') {
+                      event.preventDefault(); // Prevent form submission
+                  }
+              });
+          });
+  
+          document.addEventListener('DOMContentLoaded', function() {
+              const chatButton = document.getElementById('chat-button');
+              const chatInput = document.querySelector('.chat-input');
+              const buttonContainer = document.querySelector('.button-container');
+  
+              chatButton.addEventListener('click', function() {
+                  chatButton.style.display = 'none';
+                  chatInput.classList.add('active');
+                  buttonContainer.classList.add('input-active');
+                  document.getElementById('chat-input').focus();
+              });
+          });
       </script>
+
 </body>
 </html>

@@ -12,13 +12,14 @@
     />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
     <link rel="stylesheet" href="{% static 'styles.css' %}" />
 </head>
-<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen flex flex-col items-center font-[Inter]">
+<body class="bg-gradient-to-br  min-h-screen flex flex-col items-center font-[Inter]">
     <nav>
         <div class="nav__header">
           <div class="nav__logo">
-            <a href="{% url 'chat:home' %}"><span>YC</span>Matters</a>
+            <a href="{% url 'chat:home' %}"><span>YC</span>Lens</a>
           </div>
           <div class="nav__menu__btn" id="menu-btn">
             <span><i class="ri-menu-line"></i></span>
@@ -55,19 +56,21 @@
           {% endif %}
         </div>
       </nav>
+
+      {% if not user.is_premium %}
       <div x-data="{ hover: false }" 
-      class="bg-white p-8 rounded-2xl shadow-lg max-w-md w-full transform transition-all duration-300 mt-[100px] sm:mt-8"
-      :class="{ 'scale-105': hover }"
-      @mouseenter="hover = true"
-      @mouseleave="hover = false">
-        <h1 class="text-3xl font-bold text-center mb-8 text-indigo-900">Upgrade to Premium</h1>
-        <div class="space-y-4">
-            <div class="flex items-center bg-indigo-50 p-3 rounded-lg transition-all duration-300 hover:bg-indigo-100">
-                <svg class="h-6 w-6 text-indigo-600 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                </svg>
-                <span class="text-indigo-900">Access to exclusive features</span>
-            </div>
+          class="bg-white p-8 rounded-2xl shadow-lg max-w-md w-full transform transition-all duration-300 mt-[100px] sm:mt-8"
+          :class="{ 'scale-105': hover }"
+          @mouseenter="hover = true"
+          @mouseleave="hover = false">
+          <h1 class="text-3xl font-bold text-center mb-8 text-indigo-900">Upgrade to Premium</h1>
+          <div class="space-y-4">
+              <div class="flex items-center bg-indigo-50 p-3 rounded-lg transition-all duration-300 hover:bg-indigo-100">
+                  <svg class="h-6 w-6 text-indigo-600 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                  </svg>
+                  <span class="text-indigo-900">Access to exclusive features</span>
+              </div>
             <div class="flex items-center bg-indigo-50 p-3 rounded-lg transition-all duration-300 hover:bg-indigo-100">
                 <svg class="h-6 w-6 text-indigo-600 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
@@ -94,15 +97,119 @@
             </div>
         </div>
         <div class="mt-8">
-            <p class="text-center text-3xl font-bold text-indigo-900 mb-6">₹499 <span class="text-sm font-normal text-indigo-600">/ month</span></p>
+            <p class="text-center text-3xl font-bold text-indigo-900 mb-6">₹335 <span class="text-sm font-normal text-indigo-600">/ month</span></p>
             <form method="post" action="{% url 'chat:initiate_payment' %}">
                 {% csrf_token %}
-                <button type="submit" class="w-full bg-indigo-600 text-white py-3 px-4 rounded-xl hover:bg-indigo-700 transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-50">
-                    Upgrade Now
-                </button>
+                <button id="rzp-button1" class="w-full bg-indigo-600 text-white py-3 px-4 rounded-xl hover:bg-indigo-700 transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-50">
+                  Upgrade Now
+              </button>
             </form>
         </div>
     </div>
+    {% else %}
+    <div class="bg-white p-8 rounded-2xl shadow-lg max-w-md w-full mt-[100px] sm:mt-8">
+      <h1 class="text-3xl font-bold text-center mb-8 text-indigo-900">Welcome, Premium YCMatter !</h1>
+      <p class="text-center text-lg text-indigo-700 mb-6">Enjoy your exclusive access to all premium features.</p>
+
+      <div class="space-y-4">
+          <div class="flex items-center bg-indigo-50 p-3 rounded-lg">
+              <svg class="h-6 w-6 text-indigo-600 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+              </svg>
+              <span class="text-indigo-900">Unlimited Access</span>
+          </div>
+          <div class="flex items-center bg-indigo-50 p-3 rounded-lg">
+              <svg class="h-6 w-6 text-indigo-600 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+              </svg>
+              <span class="text-indigo-900">Exclusive Features</span>
+          </div>
+          <div class="flex items-center bg-indigo-50 p-3 rounded-lg">
+              <svg class="h-6 w-6 text-indigo-600 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+              </svg>
+              <span class="text-indigo-900">Priority Support</span>
+          </div>
+      </div>
+
+      {% if user.premium_expiry %}
+        <p class="text-center text-md text-orange-500 mb-6">Your premium access expires on <br>{{ user.premium_expiry|date:"F j, Y" }}</p>
+    {% endif %}
+
+      <div class="mt-8 text-center">
+          <a href="{% url 'chat:home' %}" class="inline-block bg-indigo-600 text-white py-3 px-6 rounded-xl hover:bg-indigo-700 transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-50">
+              Explore Premium Features
+          </a>
+      </div>
+  </div>
+    {% endif %}
     <script src="{% static 'main.js' %}"></script>
+    <script>
+      document.getElementById('rzp-button1').onclick = function(e){
+          e.preventDefault();
+          
+          fetch("{% url 'chat:initiate_payment' %}", {
+              method: 'POST',
+              headers: {
+                  'X-CSRFToken': '{{ csrf_token }}',
+                  'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({})
+          })
+          .then(response => response.json())
+          .then(data => {
+              if(data.error) {
+                  alert(data.error);
+                  return;
+              }
+              
+              var options = {
+                  "key": data.razorpay_key,
+                  "amount": data.amount,
+                  "currency": data.currency,
+                  "name": "YCLens",
+                  "description": "Premium Upgrade",
+                  "order_id": data.order_id,
+                  "handler": function (response){
+                      // Create a form to submit payment details to your server
+                      var form = document.createElement('form');
+                      form.method = 'POST';
+                      form.action = "{% url 'chat:payment_success' %}";
+                      
+                      var csrfInput = document.createElement('input');
+                      csrfInput.type = 'hidden';
+                      csrfInput.name = 'csrfmiddlewaretoken';
+                      csrfInput.value = "{{ csrf_token }}";
+                      form.appendChild(csrfInput);
+      
+                      var fields = ['razorpay_payment_id', 'razorpay_order_id', 'razorpay_signature'];
+                      fields.forEach(field => {
+                          var input = document.createElement('input');
+                          input.type = 'hidden';
+                          input.name = field;
+                          input.value = response[field];
+                          form.appendChild(input);
+                      });
+      
+                      document.body.appendChild(form);
+                      form.submit();
+                  },
+                  "prefill": {
+                      "name": "{{ request.user.get_full_name }}",
+                      "email": "{{ request.user.email }}"
+                  },
+                  "theme": {
+                      "color": "#4F46E5"
+                  }
+              };
+              var rzp1 = new Razorpay(options);
+              rzp1.open();
+          })
+          .catch(error => {
+              console.error('Error:', error);
+              alert('An error occurred. Please try again.');
+          });
+      };
+      </script>
 </body>
 </html>

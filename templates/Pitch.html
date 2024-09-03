@@ -36,7 +36,7 @@
         
         .left-panel {
             flex: 1;
-            background: linear-gradient(45deg, #ff6600cd, #ff6600d8, #e2e1e1);
+            background: linear-gradient(45deg, #FF6600cd, #FF6600d8, #e2e1e1);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -201,7 +201,7 @@
     <nav style="margin-bottom: 15px;">
         <div class="nav__header">
           <div class="nav__logo">
-            <a href="{% url 'chat:home' %}"><span>YC</span>Matters</a>
+            <a href="{% url 'chat:home' %}"><span>YC</span>Lens</a>
           </div>
           <div class="nav__menu__btn" id="menu-btn">
             <span><i class="ri-menu-line"></i></span>
@@ -247,7 +247,7 @@
             <p class="description">Elevate your pitch game with our cutting-edge AI interview simulator. Perfect for entrepreneurs aiming to impress investors, including Y Combinator. Sharpen your skills, refine your message, and step into your next pitch with confidence.</p>
             <button class="start-btn" onclick="window.location.href='{% url 'chat:interview_view' %}'">Start Pitch</button>
             <div class="form-container">
-                <div class="form-heading">Customize Your Experience <span class="featured-tag">PREMIUM</span></div>
+                <div class="form-heading">Customize Your Experience</div>
                 <form id="customPitchForm">
                     {% csrf_token %}
                     <input type="text" id="investorName" placeholder="Investor's Name" required>
