@@ -10,7 +10,21 @@ urlpatterns = [
     path('results/',analysis_results, name='analysis_results'),
 
     path('ideas/', idea_list, name='idea_list'),
-    path('idea/<int:idea_id>/', idea_detail, name='idea_detail'),
+    path('ideas/<int:idea_id>/', idea_detail, name='idea_detail'),
+    path('public-ideas/<int:idea_id>/', public_idea_detail, name='public_idea_detail'),
+    path('ideas/<int:idea_id>/make-public/', make_idea_public, name='make_idea_public'),
+    path('ideas/<int:idea_id>/comment/', add_comment, name='add_comment'),
+    path('notifications/', notifications, name='notifications'),
+    path('update_idea/<int:idea_id>/', update_idea, name='update_idea'),
+
+    path('generate-startup-ideas/',generate_startup_ideas, name='generate_startup_ideas'),
+
+    path('public-ideas/', public_idea_list, name='public_idea_list'),
+
+    path('upvote/<int:idea_id>/',upvote_idea, name='upvote_idea'),
+
+
+    path('toggle_idea_visibility/<int:idea_id>/',toggle_idea_visibility, name='toggle_idea_visibility'),
     
 
     path('pitch/',start_pitch,name='start_pitch'),
@@ -30,6 +44,7 @@ urlpatterns = [
     path('idea/<int:idea_id>/cold_calls_chat/', cold_calls_chat, name='cold_calls_chat'),
     path('idea/<int:idea_id>/clear_session_cold_calls/', clear_session_cold_calls, name='clear_session_cold_calls'),
     path('idea/<int:idea_id>/get_conversation_cold_calls/', get_conversation_cold_calls, name='get_conversation_cold_calls'),
+    path('upvote/<int:idea_id>/', upvote_idea, name='upvote_idea'),
 
     path('submit_feedback/',submit_feedback, name='submit_feedback'),
     

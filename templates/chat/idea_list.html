@@ -7,15 +7,13 @@
     <link href="https://cdn.jsdelivr.net/npm/remixicon@4.3.0/fonts/remixicon.css" rel="stylesheet" />
     <link rel="stylesheet" href="{% static 'styles.css' %}" />
     <link href="css/fontawesome.min.css" rel="stylesheet" type="text/css" />
+    
     <title>YCLens | My Ideas</title>
     <style>
         .idea-list-container {
-            max-width: 800px;
+            max-width: 1200px;
             margin: 50px auto;
             padding: 20px;
-            background-color: #ffffff;
-            border-radius: 15px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
         .idea-list-title {
             text-align: center;
@@ -23,20 +21,24 @@
             font-size: 2.5rem;
             margin-bottom: 30px;
         }
-        .idea-list {
-            list-style-type: none;
-            padding: 0;
+        .idea-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
         }
-        .idea-item {
-            background-color: #f8f9fa;
-            border-radius: 10px;
-            margin-bottom: 15px;
-            padding: 20px;
+        .idea-card {
+            background-color: #ffffff;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             transition: all 0.3s ease;
+            overflow: hidden;
         }
-        .idea-item:hover {
+        .idea-card:hover {
             transform: translateY(-5px);
             box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+        }
+        .idea-content {
+            padding: 20px;
         }
         .idea-link {
             color: #3498db;
@@ -50,111 +52,322 @@
             color: #7f8c8d;
             font-size: 0.9rem;
         }
+        .idea-comments {
+            color: #27ae60;
+            font-size: 0.9rem;
+            margin-right: 10px;
+        }
         .no-ideas {
             text-align: center;
             color: #7f8c8d;
             font-style: italic;
+            grid-column: 1 / -1;
         }
-        @media (max-width: 768px) {
-            .nav__header {
-                padding: 1rem;
-                width: 100%;
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-                background-color: var(--primary-color);
-                margin-top: -55px;
-            }
-            .nav__links.open {
-                display: flex; /* Show when 'open' class is added */
-                flex-direction: column;
-                align-items: center;
-                justify-content: center;
-                margin-top: -60px;
-            }
+        .toggle-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+            gap: 20px;
         }
+        .toggle-btn {
+            background-color: #00000091;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            border: none;
+            font-size: 1rem;
+        }
+        .toggle-btn:hover {
+            background-color: #2980b9;
+        }
+        .toggle-btn.active {
+            background-color: #FF6600;
+        }
+        .idea-section {
+            display: none;
+        }
+        .idea-section.active {
+            display: block;
+        }
+        .card-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 20px;
+            background-color: #f8f9fa;
+        }
+        .toggle-visibility, .edit-idea-button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            font-size: 0.9rem;
+        }
+        .toggle-visibility:hover, .edit-idea-button:hover {
+            background-color: #2980b9;
+        }
+        .edit-idea-button {
+            background-color: #4CAF50;
+        }
+        .edit-idea-button:hover {
+            background-color: #45a049;
+        }
+        .modal {
+            display: none; 
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%; 
+            height: 100%; 
+            overflow: auto; 
+            background-color: rgba(0,0,0,0.4);
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto; 
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 500px;
+            border-radius: 10px;
+            position: relative;
+        }
+        .close-button {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .close-button:hover,
+        .close-button:focus {
+            color: #000;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .edit-form textarea {
+            width: 100%;
+            margin-bottom: 10px;
+            padding: 8px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+        .save-changes-button {
+            background-color: #4CAF50;
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 4px 2px;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+        }
+        .save-changes-button:hover {
+            background-color: #45a049;
+        }
+        
     </style>
 </head>
 <body>
     <nav>
         <div class="nav__header">
-            <div class="nav__logo">
-                <a href="{% url 'chat:home' %}"><span>YC</span>Lens</a>
-            </div>
-            <div class="nav__menu__btn" id="menu-btn">
-                <span><i class="ri-menu-line"></i></span>
-            </div>
+          <div class="nav__logo">
+            <a href="{% url 'chat:home' %}"><span>YC</span>Lens</a>
+          </div>
+          <div class="nav__menu__btn" id="menu-btn">
+            <span><i class="ri-menu-line"></i></span>
+          </div>
         </div>
         <ul class="nav__links" id="nav-links">
-            <li><a href="{% url 'chat:home' %}">Home</a></li>
-            <li><a href="{% url 'chat:about' %}">About Us</a></li>
-            <li><a href="{% url 'chat:contact' %}">Contact</a></li>
+          <li><a href="{% url 'chat:home' %}">Home</a></li>
+          <li><a href="{% url 'chat:about' %}">About Us</a></li>
+          <li><a href="{% url 'chat:contact' %}">Contact</a></li>
+          {% if user.is_authenticated %}
+              <li><a href="{% url 'chat:idea_list' %}">My Ideas</a></li>
+              <li><a href="{% url 'chat:notifications' %}">Notifications</a></li>
+          {% endif %}
+          <li class="mobile-login">
             {% if user.is_authenticated %}
-                <li><a href="{% url 'chat:idea_list' %}">My Ideas</a></li>
+              <a href="{% url 'chat:logout' %}">Logout</a>
+            {% else %}
+              <a href="{% url 'chat:sign_in_or_sign_up' %}">Login</a>
             {% endif %}
-            <li class="mobile-login">
-                {% if user.is_authenticated %}
-                    <a href="{% url 'chat:logout' %}">Logout</a>
-                {% else %}
-                    <a href="{% url 'chat:sign_in_or_sign_up' %}">Login</a>
-                {% endif %}
-            </li>
+          </li>
         </ul>
         <div class="nav__btns nav__btns-auth">
-            {% if user.is_authenticated %}
-            <div class="dropdown">
-                <button class="btn sign__in dropdown-toggle">{{ user.username }}</button>
-                <div class="dropdown-menu">
-                    <a href="{% url 'chat:logout' %}">Logout</a>
-                </div>
+          {% if user.is_authenticated %}
+          <div class="dropdown">
+            <button class="btn sign__in dropdown-toggle">{{ user.username }}</button>
+            <div class="dropdown-menu">
+              <a href="{% url 'chat:logout' %}">Logout</a>
             </div>
-            {% else %}
-            <a href="{% url 'chat:sign_in_or_sign_up' %}">
-                <button class="btn sign__in">Log In</button>
-            </a>
-            {% endif %}
+          </div>
+          {% else %}
+          <a href="{% url 'chat:sign_in_or_sign_up' %}">
+            <button class="btn sign__in">Log In</button>
+          </a>
+          {% endif %}
         </div>
-    </nav>
+      </nav>
 
     <div class="idea-list-container">
         <h1 class="idea-list-title">Your Startup Ideas</h1>
-        <ul class="idea-list">
-        {% for startup_idea in ideas %}
-            <li class="idea-item">
-                <a href="{% url 'chat:idea_detail' startup_idea.id %}" class="idea-link">
-                    {{ startup_idea.idea|truncatechars:100 }}
-                </a>
-                <span class="idea-date">{{ startup_idea.created_at|date:"F d, Y" }}</span>
-            </li>
-        {% empty %}
-            <li class="no-ideas">You haven't submitted any ideas yet.</li>
-        {% endfor %}
-        </ul>
+        
+        <div class="toggle-container">
+            <button class="toggle-btn active" id="private-toggle">Private Ideas</button>
+            <button class="toggle-btn" id="public-toggle">Public Ideas</button>
+        </div>
+
+        <div class="idea-section active" id="private-ideas">
+            <h2>Your Private Ideas</h2><br>
+            <div class="idea-grid">
+            {% for startup_idea in user_ideas %}
+                {% if not startup_idea.is_public %}
+                <div class="idea-card">
+                    <div class="idea-content">
+                        <a href="{% url 'chat:idea_detail' startup_idea.id %}" class="idea-link">
+                            {{ startup_idea.idea|truncatechars:100 }}
+                        </a>
+                        <span class="idea-date">{{ startup_idea.created_at|date:"F d, Y" }}</span>
+                    </div>
+                    <div class="card-actions">
+                        <button class="toggle-visibility" data-id="{{ startup_idea.id }}">
+                            Get Public Review
+                        </button>
+                    </div>
+                </div>
+                {% endif %}
+            {% empty %}
+                <div class="no-ideas">You haven't submitted any private ideas yet.</div>
+            {% endfor %}
+            </div>
+        </div>
+
+        <div class="idea-section" id="public-ideas">
+            <h2>Your Public Ideas</h2><br>
+            <div class="idea-grid">
+                {% for startup_idea in user_ideas %}
+                    {% if startup_idea.is_public %}
+                    <div class="idea-card" id="idea-item-{{ startup_idea.id }}">
+                        <div class="idea-content">
+                            <a href="{% url 'chat:idea_detail' startup_idea.id %}" class="idea-link">
+                                {{ startup_idea.idea|truncatechars:100 }}
+                            </a>
+                            <span class="idea-date">{{ startup_idea.created_at|date:"F d, Y" }}</span>
+                            <a href="{% url 'chat:public_idea_detail' startup_idea.id %}" class="idea-link">
+                                <span class="idea-comments">Comments: {{ startup_idea.comments.count }}</span>
+                            </a>
+                                <span class="idea-comments">Upvotes: {{ startup_idea.upvotes.count }}</span>
+                        </div>
+                        <div class="card-actions">
+                            <button class="toggle-visibility" data-id="{{ startup_idea.id }}">
+                                Make Private
+                            </button>
+                            <button class="edit-idea-button" data-id="{{ startup_idea.id }}">
+                                <i class="ri-edit-line"></i> Edit
+                            </button>
+                        </div>
+                    </div>
+                    {% endif %}
+                {% empty %}
+                    <div class="no-ideas">You haven't made any ideas public yet.</div>
+                {% endfor %}
+            </div>
+        </div>
     </div>
+
+    {% for startup_idea in user_ideas %}
+        {% if startup_idea.is_public %}
+        <div class="modal" id="edit-modal-{{ startup_idea.id }}">
+            <div class="modal-content">
+                <span class="close-button" data-id="{{ startup_idea.id }}">&times;</span>
+                <form class="edit-form" method="POST" action="{% url 'chat:update_idea' startup_idea.id %}">
+                    {% csrf_token %}
+                    <h3>Edit Idea</h3>
+                    <textarea name="idea" rows="2">{{ startup_idea.idea }}</textarea>
+                    <textarea name="description" rows="4">{{ startup_idea.summary }}</textarea>
+                    <button type="submit" class="save-changes-button">Save Changes</button>
+                </form>
+            </div>
+        </div>
+        {% endif %}
+    {% endfor %}
 
     <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://unpkg.com/scrollreveal"></script>
     <script src="{% static 'main.js' %}"></script>
+
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const dropdownToggle = document.querySelector('.dropdown-toggle');
-            const dropdownMenu = document.querySelector('.dropdown-menu');
+        const privateToggle = document.getElementById('private-toggle');
+        const publicToggle = document.getElementById('public-toggle');
+        const privateIdeas = document.getElementById('private-ideas');
+        const publicIdeas = document.getElementById('public-ideas');
 
-            dropdownToggle.addEventListener('click', function(e) {
-                e.stopPropagation();
-                this.parentElement.classList.toggle('active');
-            });
+        privateToggle.addEventListener('click', () => {
+            privateToggle.classList.add('active');
+            publicToggle.classList.remove('active');
+            privateIdeas.classList.add('active');
+            publicIdeas.classList.remove('active');
+        });
 
-            window.addEventListener('click', function() {
-                const dropdowns = document.querySelectorAll('.dropdown');
-                dropdowns.forEach(dropdown => {
-                    if (dropdown.classList.contains('active')) {
-                        dropdown.classList.remove('active');
+        publicToggle.addEventListener('click', () => {
+            publicToggle.classList.add('active');
+            privateToggle.classList.remove('active');
+            publicIdeas.classList.add('active');
+            privateIdeas.classList.remove('active');
+        });
+
+        document.querySelectorAll('.toggle-visibility').forEach(button => {
+            button.addEventListener('click', function() {
+                const ideaId = this.getAttribute('data-id');
+                fetch(`/toggle_idea_visibility/${ideaId}/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}',
+                    },
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        location.reload(); // Reload the page to reflect changes
                     }
                 });
             });
         });
+
+        document.querySelectorAll('.edit-idea-button').forEach(button => {
+            button.addEventListener('click', function() {
+                const ideaId = this.getAttribute('data-id');
+                const modal = document.getElementById(`edit-modal-${ideaId}`);
+                modal.style.display = "block";
+            });
+        });
+
+        document.querySelectorAll('.close-button').forEach(button => {
+            button.addEventListener('click', function() {
+                const ideaId = this.getAttribute('data-id');
+                const modal = document.getElementById(`edit-modal-${ideaId}`);
+                modal.style.display = "none";
+            });
+        });
+
+        window.onclick = function(event) {
+            if (event.target.className === 'modal') {
+                event.target.style.display = "none";
+            }
+        }
     </script>
+
 </body>
 </html>

@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@4.3.0/fonts/remixicon.css" rel="stylesheet" />
+    <title>YCLens | Public Idea Detail</title>
+    <style>
+        :root {
+            --primary-color: #FF6600;
+            --secondary-color: #ff6600cd;
+            --background-color: #f3f4f6;
+            --text-color: #1f2937;
+            --light-gray: #e5e7eb;
+            --medium-gray: #9ca3af;
+            --dark-gray: #4b5563;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .container {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 20px;
+            padding-bottom: 80px;
+        }
+
+        .idea-card {
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .idea-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: #fff;
+            padding: 20px;
+            position: relative;
+        }
+
+        .idea-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            overflow: hidden;
+            max-height: 3.2em; /* limit to two lines */
+            transition: max-height 0.3s ease;
+        }
+
+        .idea-title.expanded {
+            max-height: none;
+        }
+
+        .idea-meta {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.85rem;
+            opacity: 0.9;
+        }
+
+        .idea-content {
+            padding: 20px;
+        }
+
+        .idea-description {
+            font-size: 1rem;
+            color: var(--text-color);
+            line-height: 1.6;
+            overflow: hidden;
+            position: relative;
+            max-height: 3.2em;
+            transition: max-height 0.3s ease;
+        }
+
+        .idea-description.expanded {
+            max-height: none;
+        }
+
+        .see-more {
+            display: inline-block;
+            margin-top: 10px;
+            color: var(--primary-color);
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .comment-list {
+            list-style: none;
+        }
+
+        .comment-item {
+            background-color: var(--light-gray);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+
+        .comment-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 5px;
+            font-size: 0.85rem;
+        }
+
+        .comment-author {
+            font-weight: 600;
+            color: var(--secondary-color);
+        }
+
+        .comment-date {
+            color: var(--dark-gray);
+        }
+
+        .comment-content {
+            font-size: 0.95rem;
+        }
+
+        .comment-form {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: #fff;
+            padding: 15px;
+            box-shadow: 0 -5px 15px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+        }
+
+        .comment-form textarea {
+            flex-grow: 1;
+            padding: 10px 15px;
+            font-size: 1rem;
+            border-radius: 10px;
+            border: 1px solid var(--medium-gray);
+            resize: none;
+            max-height: 100px;
+            transition: border-color 0.3s ease;
+        }
+
+        .comment-form textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        .comment-form button {
+            background-color: var(--primary-color);
+            color: #fff;
+            border: none;
+            border-radius: 20%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-left: 10px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .comment-form button:hover {
+            background-color: var(--secondary-color);
+        }
+
+        @media (max-width: 640px) {
+            .container {
+                padding: 10px;
+                padding-bottom: 70px;
+            }
+
+            .idea-header, .idea-content {
+                padding: 15px;
+            }
+
+            .idea-title {
+                font-size: 1.25rem;
+            }
+
+            .comment-form {
+                padding: 10px;
+            }
+
+            .comment-form textarea {
+                font-size: 0.9rem;
+            }
+
+            .comment-form button {
+                width: 35px;
+                height: 35px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="idea-card">
+            <div class="idea-header">
+                <h1 class="idea-title" id="idea-title">{{ idea.idea }}</h1>
+                {% if idea.idea|length > 100 %}
+                    <span class="see-more" id="see-more-title" style="color: white;">See full title</span>
+                {% endif %}
+                <div class="idea-meta">
+                    <span><i class="ri-user-line"></i> {{ idea.user.username }}</span>
+                    <span><i class="ri-calendar-line"></i> {{ idea.created_at|date:"F d, Y" }}</span>
+                </div>
+            </div>
+            
+            <div class="idea-content">
+                <div class="idea-description" id="idea-description">
+                    {% if idea.summary %}
+                        {{ idea.summary }}
+                    {% else %}
+                        No description
+                    {% endif %}
+                </div>
+                {% if idea.summary and idea.summary|length > 150 %}
+                    <span class="see-more" id="see-more-description">See full description</span>
+                {% endif %}
+            </div>
+            
+        </div>
+
+        <ul class="comment-list" id="comment-list">
+        {% for comment in comments %}
+            <li class="comment-item">
+                <div class="comment-header">
+                    <span class="comment-author">{{ comment.user.username }}</span>
+                    <span class="comment-date">{{ comment.created_at|date:"F d, Y H:i" }}</span>
+                </div>
+                <p class="comment-content">{{ comment.content }}</p>
+            </li>
+        {% empty %}
+            <li class="comment-item">No comments yet. Be the first to share your thoughts!</li>
+        {% endfor %}
+        </ul>
+    </div>
+
+    <form class="comment-form" id="comment-form">
+        {% csrf_token %}
+        <textarea name="content" rows="1" placeholder="Type your Thoughts..." required></textarea>
+        <button type="submit"><i class="ri-send-plane-fill"></i></button>
+    </form>
+
+    <script>
+        function toggleExpand(element, button) {
+            element.classList.toggle('expanded');
+            button.textContent = element.classList.contains('expanded') ? 'See less' : 'See full ' + (element.id === 'idea-title' ? 'title' : 'description');
+        }
+
+        const title = document.getElementById('idea-title');
+        const description = document.getElementById('idea-description');
+        const seeMoreTitleBtn = document.getElementById('see-more-title');
+        const seeMoreDescriptionBtn = document.getElementById('see-more-description');
+
+        seeMoreTitleBtn.addEventListener('click', () => toggleExpand(title, seeMoreTitleBtn));
+        seeMoreDescriptionBtn.addEventListener('click', () => toggleExpand(description, seeMoreDescriptionBtn));
+
+        document.getElementById('comment-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const content = this.elements.content.value;
+            fetch(`/ideas/{{ idea.id }}/comment/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken'),
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `content=${encodeURIComponent(content)}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    const commentList = document.getElementById('comment-list');
+                    const newComment = document.createElement('li');
+                    newComment.classList.add('comment-item');
+                    newComment.innerHTML = `
+                        <div class="comment-header">
+                            <span class="comment-author">{{ request.user.username }}</span>
+                            <span class="comment-date">Just now</span>
+                        </div>
+                        <p class="comment-content">${data.comment.content}</p>
+                    `;
+                    commentList.appendChild(newComment);
+                    this.reset();
+                } else {
+                    alert('There was an error adding your comment.');
+                }
+            });
+        });
+
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+    </script>
+</body>
+</html>

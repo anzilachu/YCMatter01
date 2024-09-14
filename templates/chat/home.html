@@ -42,6 +42,7 @@
         <li><a href="{% url 'chat:contact' %}">Contact</a></li>
         {% if user.is_authenticated %}
             <li><a href="{% url 'chat:idea_list' %}">My Ideas</a></li>
+            <li><a href="{% url 'chat:notifications' %}">Notifications</a></li>
         {% endif %}
         <li class="mobile-login">
           {% if user.is_authenticated %}
@@ -83,8 +84,8 @@
                   </button>
               </form>
           </div>
-          <a href="{% url 'chat:start_pitch' %}">
-            <button class="btn-secondary">Pitch Practice</button>
+          <a href="{% url 'chat:public_idea_list' %}">
+            <button class="btn-secondary">Idea Hub</button>
         </a>
       </div>
     </div>

@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@4.3.0/fonts/remixicon.css" rel="stylesheet" />
+    <link rel="stylesheet" href="{% static 'styles.css' %}" />
+    <title>YCLens | Notifications</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f6f9;
+            margin: 0;
+            padding: 0;
+        }
+
+        .notification-container {
+            max-width: 1100px;
+            margin: 60px auto;
+            padding: 25px;
+            background-color: #ffffff;
+            border-radius: 20px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .notification-title {
+            text-align: center;
+            color: #34495e;
+            font-size: 2.8rem;
+            font-weight: 700;
+            margin-bottom: 35px;
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 15px;
+        }
+
+        .notification-list {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .notification-item {
+            background-color: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .notification-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .notification-icon {
+            font-size: 2rem;
+            color: #2ecc71;
+        }
+
+        .notification-content {
+            flex-grow: 1;
+            font-size: 1.1rem;
+            color: #2c3e50;
+        }
+
+        .notification-content strong {
+            font-weight: 600;
+        }
+
+        .notification-content .idea-text {
+            color: #e67e22;
+            font-weight: 600;
+            margin-top: 5px;
+            display: block;
+        }
+
+        .notification-comment {
+            background-color: #ecf0f1;
+            padding: 10px;
+            border-radius: 8px;
+            margin-top: 10px;
+            font-size: 1rem;
+            color: #7f8c8d;
+        }
+
+        .notification-date {
+            font-size: 0.9rem;
+            color: #95a5a6;
+            text-align: right;
+        }
+
+        .notification-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .unread {
+            background-color: #e8f5e9;
+            border-left: 4px solid #2ecc71;
+        }
+
+        .no-notifications {
+            text-align: center;
+            color: #95a5a6;
+            font-style: italic;
+            font-size: 1.2rem;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <nav>
+        <!-- Include your navigation here -->
+    </nav>
+
+    <div class="notification-container">
+        <h1 class="notification-title">Your Notifications</h1>
+        <ul class="notification-list">
+            {% for notification in notifications %}
+            <li class="notification-item {% if not notification.read %}unread{% endif %}">
+                {% if notification.comment %}
+                <i class="ri-chat-1-line notification-icon"></i>
+                {% else %}
+                <i class="ri-thumb-up-line notification-icon"></i>
+                {% endif %}
+                <div class="notification-content">
+                    <div>
+                        {% if notification.comment %}
+                        <strong>{{ notification.user.username }}</strong> commented on your idea:
+                        <span class="idea-text">"{{ notification.comment.startup_idea.idea|truncatechars:80 }}"</span>
+                        {% else %}
+                        <strong>{{ notification.content }}</strong>
+                        {% endif %}
+                    </div>
+                    {% if notification.comment %}
+                    <div class="notification-comment">
+                        Comment: "{{ notification.comment.content }}"
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="notification-date">{{ notification.created_at|date:"F d, Y H:i" }}</div>
+            </li>            
+            {% empty %}
+            <li class="no-notifications">You have no notifications.</li>
+            {% endfor %}
+        </ul>
+    </div>
+
+
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://unpkg.com/scrollreveal"></script>
+    <script src="{% static 'main.js' %}"></script>
+</body>
+
+</html>

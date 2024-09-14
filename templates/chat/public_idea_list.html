@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YCLens - Public Ideas</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.16/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
+
+
+        :root {
+            --primary-color: #000000;
+            --bg-color: #F0F3F8;
+            --text-color: #000000;
+            --card-bg: #FFFFFF;
+            --accent-color: #00B894;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .ideas-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
+        }
+
+        .idea-card {
+            background-color: var(--card-bg);
+            border-radius: 20px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .idea-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(108, 92, 231, 0.1);
+        }
+
+        .card-body {
+            padding: 30px;
+            flex-grow: 1;
+        }
+
+        .card-title {
+            font-size: 1.2em;
+            color: var(--primary-color);
+            margin-bottom: 15px;
+            margin-top: 15px;
+            font-weight: 600;
+        }
+
+        .card-text {
+            color: var(--text-color);
+            margin-bottom: 20px;
+            line-height: 1.6;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #FF6600;
+            color: white;
+            text-decoration: none;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 0.9em;
+            border: 1px solid black;
+            cursor: pointer;
+        }
+
+        .btn:hover {
+            background-color: #5649C0;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(108, 92, 231, 0.3);
+        }
+
+        .card-footer {
+            background-color: rgba(108, 92, 231, 0.05);
+            padding: 15px 30px;
+            font-size: 0.9em;
+            color: var(--text-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-footer i {
+            color: var(--primary-color);
+            margin-right: 5px;
+        }
+
+        .upvote-container {
+            display: flex;
+            align-items: center;
+            position: absolute;
+            top: 10px;
+            right: 20px;
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 50px;
+            padding: 5px 15px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .upvote-btn {
+            background-color: transparent;
+            border: none;
+            color: var(--accent-color);
+            cursor: pointer;
+            font-size: 1.2em;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            padding: 0;
+            margin-right: 8px;
+        }
+
+        .upvote-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .upvote-btn i {
+            transition: all 0.3s ease;
+        }
+
+        .upvote-btn:hover i {
+            transform: translateY(-2px);
+        }
+
+        .upvote-count {
+            font-size: 0.9em;
+            color: var(--accent-color);
+            font-weight: 600;
+        }
+
+        @media (max-width: 1024px) {
+            .ideas-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .ideas-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        .filter-bar {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .filter-bar a {
+            text-decoration: none;
+            color: var(--primary-color);
+            font-weight: 600;
+            margin-left: 15px;
+            padding: 8px 12px;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+
+        .filter-bar a.active {
+            border: 1px solid #FF6600;
+        }
+
+        .filter-bar a:hover {
+            background-color: rgba(108, 92, 231, 0.1);
+        }
+
+        .pagination {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            background-color: #fff;
+            padding: 1rem 0;
+            box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.1), 0 -2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        .pagination a, .pagination span {
+            padding: 5px 10px;
+            margin: 0 5px;
+            text-decoration: none;
+            background-color: var(--card-bg);
+            border: 1px solid var(--primary-color);
+            color: var(--primary-color);
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
+        .pagination .home-btn {
+            padding: 5px 10px;
+            margin: 0 5px;
+            text-decoration: none;
+            background-color: #FF6600;
+            border: 1px solid white;
+            color: white;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
+
+        .pagination a:hover {
+            background-color: var(--primary-color);
+            color: #fff;
+        }
+
+        .pagination .current {
+            background-color: var(--primary-color);
+            color: #fff;
+        }
+    
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="filter-bar">
+            <a href="?filter=recent" data-filter="recent">Most Recent</a>
+            <a href="?filter=upvoted" data-filter="upvoted">Most Upvoted</a>
+        </div>
+
+        <div class="ideas-grid">
+            {% for idea in page_obj %}
+            <div class="idea-card">
+                <div class="card-body">
+                    <h2 class="card-title">{{ idea.idea|truncatechars:50 }}</h2>
+                    <p class="card-text">{{ idea.description|truncatechars:100 }}</p>
+                    <a href="{% url 'chat:public_idea_detail' idea.id %}" class="btn">Thoughts</a>
+                </div>
+                <div class="card-footer">
+                    <span><i class="fas fa-calendar-alt"></i> {{ idea.created_at|date:"M d, Y" }}</span>
+                    <span><i class="fas fa-user"></i> {{ idea.user.username }}</span>
+                    <div class="upvote-container">
+                        <button class="upvote-btn" data-idea-id="{{ idea.id }}">
+                            <i class="fas fa-arrow-up"></i>
+                        </button>
+                        <span class="upvote-count">{{ idea.upvote_count }}</span>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <p>No public startup ideas available yet. Be the first to share!</p>
+            {% endfor %}
+        </div>
+
+        <!-- Pagination Links -->
+        <div class="pagination" flex justify-center space-x-4>
+            <a href="{% url 'chat:home' %}" class="home-btn"> Home</a>
+            {% if page_obj.has_previous %}
+                
+                <a href="?page=1&filter={{ filter_by }}">&laquo; First</a>
+                <a href="?page={{ page_obj.previous_page_number }}&filter={{ filter_by }}">&lt; Prev</a>
+            {% endif %}
+
+            <span class="current">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+            {% if page_obj.has_next %}
+                
+                <a href="?page={{ page_obj.next_page_number }}&filter={{ filter_by }}">Next &gt;</a>
+                <a href="?page={{ page_obj.paginator.num_pages }}&filter={{ filter_by }}">Last &raquo;</a>
+            {% endif %}
+        </div>
+    </div>
+    <script>
+        document.querySelectorAll('.upvote-btn').forEach(btn => {
+            btn.addEventListener('click', async (event) => {
+                const ideaId = event.target.dataset.ideaId;
+                const response = await fetch(`/upvote/${ideaId}/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}',
+                    },
+                });
+                const data = await response.json();
+                if (data.status === 'success') {
+                    event.target.parentElement.querySelector('.upvote-count').textContent = data.upvotes;
+                }
+            });
+        });
+        </script>
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+
+                const filterLinks = document.querySelectorAll('.filter-bar a');
+                
+                const urlParams = new URLSearchParams(window.location.search);
+                const currentFilter = urlParams.get('filter') || 'recent'; 
+                
+
+                filterLinks.forEach(link => {
+                    if (link.dataset.filter === currentFilter) {
+                        link.classList.add('active');
+                    } else {
+                        link.classList.remove('active');
+                    }
+                });
+                
+
+                filterLinks.forEach(link => {
+                    link.addEventListener('click', function(e) {
+
+                        filterLinks.forEach(l => l.classList.remove('active'));
+                        
+                        this.classList.add('active');
+                    });
+                });
+            });
+        </script>
+</html>

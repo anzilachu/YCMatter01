@@ -31,6 +31,12 @@ from django.contrib import messages
 from django.shortcuts import render, redirect
 import re
 
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.decorators import login_required
+from django.urls import reverse_lazy
+from django.http import JsonResponse
+from .models import StartupIdea, Comment, Notification
+
 logger = logging.getLogger(__name__)
 
 signer = Signer()
@@ -87,10 +93,100 @@ def analysis_results(request):
 
 @login_required(login_url=reverse_lazy('chat:sign_in_or_sign_up'))
 def idea_list(request):
-    # Get the latest ideas sorted by the `id` field in descending order
-    latest_ideas = StartupIdea.objects.filter(user=request.user).order_by('-id')
+    user_ideas = StartupIdea.objects.filter(user=request.user).order_by('-id')
+    public_ideas = StartupIdea.objects.filter(is_public=True).exclude(user=request.user).order_by('-id')
+    return render(request, 'chat/idea_list.html', {'user_ideas': user_ideas, 'public_ideas': public_ideas})
 
-    return render(request, 'chat/idea_list.html', {'ideas': latest_ideas})
+from django.views.decorators.http import require_POST
+
+@csrf_exempt
+@require_POST
+@login_required(login_url=reverse_lazy('chat:sign_in_or_sign_up'))
+def generate_startup_ideas(request):
+    data = json.loads(request.body)
+    category = data.get('category')
+    existing = data.get('existing')
+
+    prompt = f"Generate 5 startup ideas in the {category} category. "
+    if existing == 'existing':
+        prompt += "Include only ideas for startups that already exist."
+    elif existing == 'non-existing':
+        prompt += "Include only ideas for startups that don't exist yet but could be feasible."
+    else:
+        prompt += "Include a mix of existing and non-existing but feasible startup ideas."
+
+    client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
+    
+    try:
+        chat_completion = client.chat.completions.create(
+            messages=[
+                {
+                    "role": "user",
+                    "content": prompt,
+                }
+            ],
+            model="llama3-8b-8192",
+        )
+        
+        generated_ideas = chat_completion.choices[0].message.content.split('\n')
+        return JsonResponse({'ideas': generated_ideas})
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+@login_required(login_url=reverse_lazy('chat:sign_in_or_sign_up'))
+def make_idea_public(request, idea_id):
+    idea = get_object_or_404(StartupIdea, id=idea_id, user=request.user)
+    idea.is_public = True
+    idea.save()
+    return JsonResponse({'status': 'success'})
+
+from django.http import Http404
+
+@login_required(login_url=reverse_lazy('chat:sign_in_or_sign_up'))
+def public_idea_detail(request, idea_id):
+    idea = get_object_or_404(StartupIdea, id=idea_id)
+    
+    if idea.is_public or idea.user == request.user:
+        comments = idea.comments.all().order_by('-created_at')
+        return render(request, 'chat/public_idea_detail.html', {
+            'idea': idea,
+            'comments': comments,
+            'scores': json.dumps(idea.scores),
+            'analysis': idea.analysis,
+        })
+    else:
+        return redirect('chat:idea_list')
+
+@login_required(login_url=reverse_lazy('chat:sign_in_or_sign_up'))
+def add_comment(request, idea_id):
+    if request.method == 'POST':
+        idea = get_object_or_404(StartupIdea, id=idea_id, is_public=True)
+        content = request.POST.get('content')
+        comment = Comment.objects.create(startup_idea=idea, user=request.user, content=content)
+
+        # Create notification for idea owner with comment content
+        if idea.user != request.user:
+            Notification.objects.create(
+                user=idea.user,
+                content=f"{request.user.username} commented on your idea: {content[:50]}...",
+                comment=comment  # Save the comment reference
+            )
+
+        return JsonResponse({'status': 'success', 'comment_id': comment.id})
+    return JsonResponse({'status': 'error'}, status=400)
+
+@login_required(login_url=reverse_lazy('chat:sign_in_or_sign_up'))
+def toggle_idea_visibility(request, idea_id):
+    idea = get_object_or_404(StartupIdea, id=idea_id, user=request.user)
+    idea.is_public = not idea.is_public  # Toggle the public/private status
+    idea.save()
+    return JsonResponse({'status': 'success', 'is_public': idea.is_public})
+
+
+@login_required(login_url=reverse_lazy('chat:sign_in_or_sign_up'))
+def notifications(request):
+    user_notifications = request.user.notifications.order_by('-created_at')
+    return render(request, 'chat/notifications.html', {'notifications': user_notifications})
 
 
 @login_required(login_url=reverse_lazy('chat:sign_in_or_sign_up'))
@@ -102,6 +198,60 @@ def idea_detail(request, idea_id):
         'idea': idea  # Pass the entire idea object
     })
 
+from django.core.paginator import Paginator
+from django.shortcuts import render
+from django.contrib.auth.decorators import login_required
+
+@login_required(login_url=reverse_lazy('chat:sign_in_or_sign_up'))
+def public_idea_list(request):
+    # Determine the filter based on user input, default to 'recent'
+    filter_by = request.GET.get('filter', 'recent')
+
+    # Filter ideas based on selection
+    if filter_by == 'upvoted':
+        public_ideas = StartupIdea.objects.filter(is_public=True).exclude(user=request.user).order_by('-upvotes', '-created_at')
+    else:
+        public_ideas = StartupIdea.objects.filter(is_public=True).exclude(user=request.user).order_by('-created_at')
+
+    # Pagination: 9 ideas per page
+    paginator = Paginator(public_ideas, 6)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    return render(request, 'chat/public_idea_list.html', {
+        'page_obj': page_obj,
+        'filter_by': filter_by
+    })
+from django.http import HttpResponseRedirect
+
+def update_idea(request, idea_id):
+    if request.method == 'POST':
+        idea = get_object_or_404(StartupIdea, id=idea_id)
+        idea.idea = request.POST.get('idea')
+        idea.summary = request.POST.get('description')
+        idea.save()
+        return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
+
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404
+from .models import StartupIdea
+
+@login_required(login_url=reverse_lazy('chat:sign_in_or_sign_up'))
+def upvote_idea(request, idea_id):
+    idea = get_object_or_404(StartupIdea, id=idea_id, is_public=True)
+    user = request.user
+
+    if user not in idea.upvotes.all():
+        idea.upvotes.add(user)
+        if idea.user != user:
+            Notification.objects.create(
+                user=idea.user,
+                content=f"{user.username} upvoted your idea: '{idea.idea[:50]}...'"
+            )
+        return JsonResponse({'status': 'success', 'upvotes': idea.upvote_count()})
+    else:
+        idea.upvotes.remove(user)
+        return JsonResponse({'status': 'success', 'upvotes': idea.upvote_count()})
 
 import logging
 

@@ -133,9 +133,12 @@ nav {
   max-width: 520px;
   margin-inline: auto;
 }
-.hero-1 {
-  height: 67vh;
+@media (min-width: 1024px) {
+  .hero-1 {
+    height: 67vh;
+  }
 }
+
 .header__image__card {
   position: absolute;
   padding: 0.75rem 1rem;
@@ -228,7 +231,7 @@ nav {
   gap: 1rem 0;
   border-radius: 10px;
   box-shadow: 5px 5px 20px rgba(0, 0, 0, 0.117);
-  width: 500px;
+  width: 650px;
   border: 1px solid #FF6600;
 }
 
@@ -457,6 +460,7 @@ input::placeholder {
 }
 
 @media (max-width: 768px) {
+
   .image-container {
       gap: 1rem;
   }
@@ -547,6 +551,8 @@ input::placeholder {
   border-radius: 10px;
   position: relative;
 }
+
+
 
 .yt-auto-scroll {
   display: flex;
@@ -663,7 +669,6 @@ input::placeholder {
   .newsletter-content p {
     font-size: 1rem;
   }
-
   .newsletter-form .input-group {
     flex-direction: column;
     background-color: transparent;
@@ -691,8 +696,6 @@ input::placeholder {
     margin-top: 1rem;
   }
 }
-
-
 .mobile-login {
   display: none;
 }

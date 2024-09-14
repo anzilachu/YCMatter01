@@ -59,6 +59,12 @@ class StartupIdea(models.Model):
     analysis = models.TextField()
     scores = models.JSONField()
     created_at = models.DateTimeField(auto_now_add=True)
+    is_public = models.BooleanField(default=False)
+    upvotes = models.ManyToManyField(User, related_name='upvoted_ideas', blank=True)
+    summary = models.CharField(max_length=255, null=True, blank=True)
+
+    def upvote_count(self):
+        return self.upvotes.count()
 
     def __str__(self):
         return f"{self.user.email}'s idea: {self.idea[:50]}..."
@@ -66,6 +72,30 @@ class StartupIdea(models.Model):
     class Meta:
         verbose_name = "Startup Idea"
         verbose_name_plural = "Startup Ideas"
+
+class Comment(models.Model):
+    startup_idea = models.ForeignKey(StartupIdea, on_delete=models.CASCADE, related_name='comments')
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    content = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Comment by {self.user.email} on {self.startup_idea}"
+
+    class Meta:
+        verbose_name = "Comment"
+        verbose_name_plural = "Comments"
+
+class Notification(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications')
+    content = models.TextField()
+    comment = models.ForeignKey(Comment, on_delete=models.CASCADE, null=True, blank=True, related_name='notification')  # New field
+    created_at = models.DateTimeField(auto_now_add=True)
+    is_read = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"Notification for {self.user.email}: {self.content[:50]}..."
+
 
 
 class Payment(models.Model):
