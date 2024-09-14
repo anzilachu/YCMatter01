@@ -239,7 +239,37 @@
             background-color: var(--primary-color);
             color: #fff;
         }
-    
+        @media (max-width: 768px) {
+        .idea-card {
+            padding: 15px; /* Reduce padding */
+        }
+        .card-title {
+            font-size: 1em; /* Make title smaller */
+            margin-bottom: 10px;
+        }
+        .card-text {
+            font-size: 0.9em; /* Reduce font size */
+            line-height: 1.4;
+        }
+        .btn {
+            padding: 8px 16px; /* Adjust button size */
+            font-size: 0.85em;
+        }
+        .card-footer {
+            font-size: 0.8em; /* Smaller footer text */
+            padding: 10px 15px;
+        }
+        .upvote-container {
+            padding: 3px 10px; /* Adjust upvote container size */
+        }
+        .upvote-btn {
+            font-size: 1em; /* Adjust upvote icon size */
+        }
+        .upvote-count {
+            font-size: 0.8em;
+        }
+    }
+
     </style>
 </head>
 <body>
