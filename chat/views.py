@@ -97,41 +97,6 @@ def idea_list(request):
     public_ideas = StartupIdea.objects.filter(is_public=True).exclude(user=request.user).order_by('-id')
     return render(request, 'chat/idea_list.html', {'user_ideas': user_ideas, 'public_ideas': public_ideas})
 
-from django.views.decorators.http import require_POST
-
-@csrf_exempt
-@require_POST
-@login_required(login_url=reverse_lazy('chat:sign_in_or_sign_up'))
-def generate_startup_ideas(request):
-    data = json.loads(request.body)
-    category = data.get('category')
-    existing = data.get('existing')
-
-    prompt = f"Generate 5 startup ideas in the {category} category. "
-    if existing == 'existing':
-        prompt += "Include only ideas for startups that already exist."
-    elif existing == 'non-existing':
-        prompt += "Include only ideas for startups that don't exist yet but could be feasible."
-    else:
-        prompt += "Include a mix of existing and non-existing but feasible startup ideas."
-
-    client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
-    
-    try:
-        chat_completion = client.chat.completions.create(
-            messages=[
-                {
-                    "role": "user",
-                    "content": prompt,
-                }
-            ],
-            model="llama3-8b-8192",
-        )
-        
-        generated_ideas = chat_completion.choices[0].message.content.split('\n')
-        return JsonResponse({'ideas': generated_ideas})
-    except Exception as e:
-        return JsonResponse({'error': str(e)}, status=500)
 
 @login_required(login_url=reverse_lazy('chat:sign_in_or_sign_up'))
 def make_idea_public(request, idea_id):
