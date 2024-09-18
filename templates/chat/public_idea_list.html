@@ -17,6 +17,12 @@
             --card-bg: #FFFFFF;
             --accent-color: #00B894;
         }
+        * {
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+        }
 
         body {
             font-family: 'Poppins', sans-serif;
@@ -144,17 +150,12 @@
             margin-right: 8px;
         }
 
-        .upvote-btn:hover {
-            transform: scale(1.1);
-        }
+
 
         .upvote-btn i {
             transition: all 0.3s ease;
         }
 
-        .upvote-btn:hover i {
-            transform: translateY(-2px);
-        }
 
         .upvote-count {
             font-size: 0.9em;
@@ -191,10 +192,6 @@
 
         .filter-bar a.active {
             border: 1px solid #FF6600;
-        }
-
-        .filter-bar a:hover {
-            background-color: rgba(108, 92, 231, 0.1);
         }
 
         .pagination {
@@ -284,12 +281,10 @@
                 <div class="card-footer">
                     <span><i class="fas fa-calendar-alt"></i> {{ idea.created_at|date:"M d, Y" }}</span>
                     <span><i class="fas fa-user"></i> {{ idea.user.username }}</span>
-                    <div class="upvote-container">
-                        <button class="upvote-btn" data-idea-id="{{ idea.id }}">
-                            <i class="fas fa-arrow-up"></i>
-                        </button>
+                    <div class="upvote-container" data-idea-id="{{ idea.id }}">
+                        <i class="fas fa-arrow-up"></i>
                         <span class="upvote-count">{{ idea.upvote_count }}</span>
-                    </div>
+                    </div>                    
                 </div>
             </div>
             {% empty %}
@@ -359,5 +354,22 @@
                     });
                 });
             });
+            document.querySelectorAll('.upvote-container').forEach(container => {
+                container.addEventListener('click', async (event) => {
+                    const ideaId = container.dataset.ideaId;
+                    const response = await fetch(`/upvote/${ideaId}/`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': '{{ csrf_token }}',
+                        },
+                    });
+                    const data = await response.json();
+                    if (data.status === 'success') {
+                        container.querySelector('.upvote-count').textContent = data.upvotes;
+                    }
+                });
+            });
+
         </script>
 </html>
