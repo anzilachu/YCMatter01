@@ -129,21 +129,21 @@ def add_comment(request, idea_id):
         content = request.POST.get('content')
         comment = Comment.objects.create(startup_idea=idea, user=request.user, content=content)
 
-        # Create notification for idea owner with comment content
         if idea.user != request.user:
             Notification.objects.create(
                 user=idea.user,
                 content=f"{request.user.username} commented on your idea: {content[:50]}...",
-                comment=comment  # Save the comment reference
+                comment=comment
             )
 
         return JsonResponse({'status': 'success', 'comment_id': comment.id})
     return JsonResponse({'status': 'error'}, status=400)
 
+
 @login_required(login_url=reverse_lazy('chat:sign_in_or_sign_up'))
 def toggle_idea_visibility(request, idea_id):
     idea = get_object_or_404(StartupIdea, id=idea_id, user=request.user)
-    idea.is_public = not idea.is_public  # Toggle the public/private status
+    idea.is_public = not idea.is_public
     idea.save()
     return JsonResponse({'status': 'success', 'is_public': idea.is_public})
 
