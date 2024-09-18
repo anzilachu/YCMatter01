@@ -270,8 +270,12 @@
         const seeMoreTitleBtn = document.getElementById('see-more-title');
         const seeMoreDescriptionBtn = document.getElementById('see-more-description');
 
-        seeMoreTitleBtn.addEventListener('click', () => toggleExpand(title, seeMoreTitleBtn));
-        seeMoreDescriptionBtn.addEventListener('click', () => toggleExpand(description, seeMoreDescriptionBtn));
+        if (seeMoreTitleBtn) {
+            seeMoreTitleBtn.addEventListener('click', () => toggleExpand(title, seeMoreTitleBtn));
+        }
+        if (seeMoreDescriptionBtn) {
+            seeMoreDescriptionBtn.addEventListener('click', () => toggleExpand(description, seeMoreDescriptionBtn));
+        }
 
         document.getElementById('comment-form').addEventListener('submit', function(e) {
             e.preventDefault();
@@ -295,13 +299,23 @@
                             <span class="comment-author">{{ request.user.username }}</span>
                             <span class="comment-date">Just now</span>
                         </div>
-                        <p class="comment-content">${data.comment.content}</p>
+                        <p class="comment-content">${content}</p>
                     `;
-                    commentList.appendChild(newComment);
+                    commentList.insertBefore(newComment, commentList.firstChild);
                     this.reset();
+
+                    // Remove "No comments yet" message if it exists
+                    const noCommentsMessage = commentList.querySelector('li:only-child');
+                    if (noCommentsMessage && noCommentsMessage.textContent.includes('No comments yet')) {
+                        noCommentsMessage.remove();
+                    }
                 } else {
                     alert('There was an error adding your comment.');
                 }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('There was an error adding your comment.');
             });
         });
 
