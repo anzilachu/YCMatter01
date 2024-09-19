@@ -17,6 +17,8 @@ urlpatterns = [
     path('notifications/', notifications, name='notifications'),
     path('update_idea/<int:idea_id>/', update_idea, name='update_idea'),
 
+    path('get-notification-count/', get_notification_count, name='get_notification_count'),
+
 
     path('public-ideas/', public_idea_list, name='public_idea_list'),
 

@@ -151,7 +151,25 @@ def toggle_idea_visibility(request, idea_id):
 @login_required(login_url=reverse_lazy('chat:sign_in_or_sign_up'))
 def notifications(request):
     user_notifications = request.user.notifications.order_by('-created_at')
-    return render(request, 'chat/notifications.html', {'notifications': user_notifications})
+    unread_count = user_notifications.filter(is_read=False).count()
+    
+    # Mark all notifications as read when the user views them
+    user_notifications.update(is_read=True)
+    
+    return render(request, 'chat/notifications.html', {
+        'notifications': user_notifications,
+        'unread_count': unread_count
+    })
+
+def get_unread_notifications_count(request):
+    if request.user.is_authenticated:
+        return request.user.notifications.filter(is_read=False).count()
+    return 0
+
+@login_required
+def get_notification_count(request):
+    unread_count = request.user.notifications.filter(is_read=False).count()
+    return JsonResponse({'count': unread_count})
 
 
 @login_required(login_url=reverse_lazy('chat:sign_in_or_sign_up'))

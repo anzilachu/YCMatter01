@@ -181,50 +181,18 @@
         .save-changes-button:hover {
             background-color: #45a049;
         }
-        
+        @media (max-width: 768px) {
+            .idea-list-container {
+                max-width: 1200px;
+                margin: 0px;
+                padding: 20px;
+                padding-top: 100px;
+            }
+        }
     </style>
 </head>
 <body>
-    <nav>
-        <div class="nav__header">
-          <div class="nav__logo">
-            <a href="{% url 'chat:home' %}"><span>YC</span>Lens</a>
-          </div>
-          <div class="nav__menu__btn" id="menu-btn">
-            <span><i class="ri-menu-line"></i></span>
-          </div>
-        </div>
-        <ul class="nav__links" id="nav-links">
-          <li><a href="{% url 'chat:home' %}">Home</a></li>
-          <li><a href="{% url 'chat:about' %}">About Us</a></li>
-          <li><a href="{% url 'chat:contact' %}">Contact</a></li>
-          {% if user.is_authenticated %}
-              <li><a href="{% url 'chat:idea_list' %}">My Ideas</a></li>
-              <li><a href="{% url 'chat:notifications' %}">Notifications</a></li>
-          {% endif %}
-          <li class="mobile-login">
-            {% if user.is_authenticated %}
-              <a href="{% url 'chat:logout' %}">Logout</a>
-            {% else %}
-              <a href="{% url 'chat:sign_in_or_sign_up' %}">Login</a>
-            {% endif %}
-          </li>
-        </ul>
-        <div class="nav__btns nav__btns-auth">
-          {% if user.is_authenticated %}
-          <div class="dropdown">
-            <button class="btn sign__in dropdown-toggle">{{ user.username }}</button>
-            <div class="dropdown-menu">
-              <a href="{% url 'chat:logout' %}">Logout</a>
-            </div>
-          </div>
-          {% else %}
-          <a href="{% url 'chat:sign_in_or_sign_up' %}">
-            <button class="btn sign__in">Log In</button>
-          </a>
-          {% endif %}
-        </div>
-      </nav>
+    {% include 'chat/nav_base.html' %}
 
     <div class="idea-list-container">
         <h1 class="idea-list-title">Your Startup Ideas</h1>
