@@ -1,4 +1,4 @@
-<!-- <!DOCTYPE html>
+<!DOCTYPE html>
 {% load static %}
 <html lang="en">
 <head>
@@ -12,9 +12,12 @@
     <link href="css/fontawesome.min.css" rel="stylesheet" type="text/css" />
     <title>YCLens | Startup hub</title>
 </head>
-<body> -->
+<body>
     <style>
-          .notification-badge {
+        .mobile-nav {
+            display: none;
+        }
+        .notification-badge {
             background-color: #0004ff98;
             color: rgb(255, 255, 255);
             border-radius: 50%;
@@ -34,6 +37,62 @@
                 background-color: var(--primary-color);
                 margin-top: 0px;
             }
+            .mobile-nav {
+                display: flex;
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                width: 100%;
+                background-color: #fff;
+                box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+                z-index: 1000;
+            }
+
+            .mobile-nav__links {
+                display: flex;
+                justify-content: space-around;
+                align-items: center;
+                width: 100%;
+                padding: 10px 0;
+                list-style-type: none;
+                margin: 0;
+            }
+
+            .mobile-nav__item {
+                text-align: center;
+            }
+
+            .mobile-nav__link {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                color: #333;
+                text-decoration: none;
+                font-size: 0.8rem;
+            }
+
+            .mobile-nav__icon {
+                font-size: 1.5rem;
+                margin-bottom: 5px;
+            }
+
+            .mobile-nav__badge {
+                position: absolute;
+                top: 0;
+                right: 0;
+                background-color: #0004ff98;
+                color: #ffffff;
+                border-radius: 50%;
+                padding: 4px 8px;
+                font-size: 0.7em;
+                transform: translate(50%, -50%);
+            }
+
+            /* Hide the desktop nav on mobile */
+            nav {
+                display: none;
+            }
+        
         }
     </style>
 <nav>
@@ -83,6 +142,38 @@
         {% endif %}
     </div>
 </nav>
+<div class="mobile-nav">
+    <ul class="mobile-nav__links">
+        <li class="mobile-nav__item">
+            <a href="{% url 'chat:home' %}" class="mobile-nav__link">
+                <i class="ri-message-3-line mobile-nav__icon"></i>
+                <span>Chats</span>
+            </a>
+        </li>
+        <li class="mobile-nav__item">
+            <a href="{% url 'chat:idea_list' %}" class="mobile-nav__link">
+                <i class="ri-camera-line mobile-nav__icon"></i>
+                <span>Updates</span>
+            </a>
+        </li>
+        <li class="mobile-nav__item">
+            <a href="{% url 'chat:notifications' %}" class="mobile-nav__link">
+                <i class="ri-group-line mobile-nav__icon"></i>
+                <span>Communities</span>
+                {% if unread_notifications_count > 0 %}
+                    <span class="mobile-nav__badge">{{ unread_notifications_count }}</span>
+                {% endif %}
+            </a>
+        </li>
+        <li class="mobile-nav__item">
+            <a href="{% url 'chat:about' %}" class="mobile-nav__link">
+                <i class="ri-phone-line mobile-nav__icon"></i>
+                <span>Calls</span>
+            </a>
+        </li>
+    </ul>
+</div>
+
 
 </body>
 </html>
