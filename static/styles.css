@@ -503,7 +503,7 @@ input::placeholder {
     text-align: center;
   }
   .header__content :is(h1) {
-   padding-top: 100px;
+   padding-top: 60px;
   }
   .header__content :is(p) {
     margin-left: 5px;
