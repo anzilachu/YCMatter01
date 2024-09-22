@@ -193,18 +193,18 @@
                 <div class="notification-content">
                     <div>
                         {% if notification.comment %}
-                        <a href="{% url 'chat:notification_redirect' notification.id %}">
                             <strong>{{ notification.user.username }}</strong> commented on your idea:
                             <span class="idea-text">"{{ notification.comment.startup_idea.idea|truncatechars:80 }}"</span>
-                        </a>
                         {% else %}
                         <strong>{{ notification.content }}</strong>
                         {% endif %}
                     </div>
                     {% if notification.comment %}
-                    <div class="notification-comment">
-                        Comment: "{{ notification.comment.content }}"
-                    </div>
+                    <a href="{% url 'chat:notification_redirect' notification.id %}">
+                        <div class="notification-comment">
+                            Comment: "{{ notification.comment.content }}"
+                        </div>
+                    </a>
                     {% endif %}
                 </div>
                 <div class="notification-date">{{ notification.created_at|date:"F d, Y H:i" }}</div>
