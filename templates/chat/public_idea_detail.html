@@ -214,13 +214,48 @@
         .comment-input-wrapper button:hover {
             background-color: rgba(26, 115, 232, 0.1);
         }
+        /* Styling for the toggle buttons */
+        .toggle-btn {
+            background-color: #09588cd0; /* Primary blue color */
+            color: #fff; /* White text */
+            border: none;
+            border-radius: 5px; /* Rounded corners */
+            padding: 8px 12px; /* Padding inside the button */
+            font-size: 14px; /* Text size */
+            cursor: pointer; /* Pointer cursor on hover */
+            transition: background-color 0.3s ease; /* Smooth transition on hover */
+            margin-top: 10px; /* Space above the button */
+        }
+
+        /* Hover effect */
+        .toggle-btn:hover {
+            background-color: #2980b9; /* Darker blue on hover */
+        }
+
+        /* Optional: active state effect */
+        .toggle-btn:active {
+            background-color: #1c6e99; /* Even darker blue when clicked */
+        }
+
+        /* Optional: Button focus outline */
+        .toggle-btn:focus {
+            outline: none; /* Removes default focus outline */
+            box-shadow: 0 0 5px rgba(52, 152, 219, 0.8); /* Adds blue glow when focused */
+        }
+
     </style>
 </head>
 <body>
     <div class="container">
         <div class="idea-card">
             <div class="idea-header">
-                <h1 class="idea-title">{{ idea.idea }}</h1>
+                <h1 class="idea-title">
+                    <span id="short-idea">{{ idea.idea|truncatechars:50 }}</span>
+                    <span id="full-idea" style="display: none;">{{ idea.idea }}</span><br>
+                    {% if idea.idea|length > 50 %}
+                        <button class="toggle-btn" id="view-full-title" onclick="toggleContent('short-idea', 'full-idea', 'view-full-title')">Read Full Title</button>
+                    {% endif %}
+                </h1>
                 <div class="idea-meta">
                     <span><i class="ri-user-line"></i> {{ idea.user.username }}</span>
                     <span><i class="ri-calendar-line"></i> {{ idea.created_at|date:"F d, Y" }}</span>
@@ -229,13 +264,20 @@
             <div class="idea-content">
                 <div class="idea-description">
                     {% if idea.summary %}
-                        {{ idea.summary }}
+                        <span id="short-summary">{{ idea.summary|truncatechars:100 }}</span>
+                        <span id="full-summary" style="display: none;">{{ idea.summary }}</span><br>
+                        {% if idea.summary|length > 100 %}
+                            <button class="toggle-btn" id="view-full-description" onclick="toggleContent('short-summary', 'full-summary', 'view-full-description')">Read Full Description</button>
+                        {% endif %}
                     {% else %}
                         No description available.
                     {% endif %}
                 </div>
             </div>
         </div>
+        
+        
+        
 
         <ul class="comment-list" id="comment-list">
             {% for comment in comments %}
@@ -318,6 +360,21 @@
                 }
             }
             return cookieValue;
+        }
+        function toggleContent(shortId, fullId, buttonId) {
+            const shortElement = document.getElementById(shortId);
+            const fullElement = document.getElementById(fullId);
+            const buttonElement = document.getElementById(buttonId);
+
+            if (shortElement.style.display === 'none') {
+                shortElement.style.display = 'inline';
+                fullElement.style.display = 'none';
+                buttonElement.textContent = buttonId.includes('title') ? 'View Full Title' : 'View Full Description';
+            } else {
+                shortElement.style.display = 'none';
+                fullElement.style.display = 'inline';
+                buttonElement.textContent = 'Hide';
+            }
         }
     </script>
 </body>
