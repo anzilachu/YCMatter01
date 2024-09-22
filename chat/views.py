@@ -205,7 +205,7 @@ def notification_redirect(request, notification_id):
     notification.save()
     
     if notification.comment:
-        return redirect(reverse('chat:public_idea_detail', kwargs={'idea_id': notification.comment.startup_idea.id}) + f'#comment-{notification.comment.id}')
+        return redirect(reverse('chat:public_idea_detail', kwargs={'idea_id': notification.comment.startup_idea.id}) + f'?comment_id={notification.comment.id}')
     
     # If there's no comment associated, redirect to a default page
     return redirect('chat:notifications')

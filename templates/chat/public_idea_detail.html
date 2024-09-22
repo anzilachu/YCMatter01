@@ -242,6 +242,21 @@
             outline: none; /* Removes default focus outline */
             box-shadow: 0 0 5px rgba(52, 152, 219, 0.8); /* Adds blue glow when focused */
         }
+        .highlighted-comment {
+            animation: highlight 2s ease-in-out;
+        }
+
+        @keyframes highlight {
+            0% {
+                background-color: #fff9c4;
+            }
+            70% {
+                background-color: #fff9c4;
+            }
+            100% {
+                background-color: #f8f9fa;
+            }
+        }
 
     </style>
 </head>
@@ -376,6 +391,22 @@
                 buttonElement.textContent = 'Hide';
             }
         }
+        function highlightComment(commentId) {
+            const commentElement = document.getElementById(`comment-${commentId}`);
+            if (commentElement) {
+                commentElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                commentElement.classList.add('highlighted-comment');
+            }
+        }
+
+        // Check if there's a comment ID in the URL and highlight it
+        document.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const commentId = urlParams.get('comment_id');
+            if (commentId) {
+                highlightComment(commentId);
+            }
+        });
     </script>
 </body>
 </html>
