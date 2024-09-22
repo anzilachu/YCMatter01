@@ -31,6 +31,8 @@ from django.contrib import messages
 from django.shortcuts import render, redirect
 import re
 
+from django.urls import reverse
+
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.urls import reverse_lazy
@@ -112,7 +114,31 @@ def public_idea_detail(request, idea_id):
     idea = get_object_or_404(StartupIdea, id=idea_id)
     
     if idea.is_public or idea.user == request.user:
-        comments = idea.comments.all().order_by('-created_at')
+        comments = idea.comments.filter(parent=None).order_by('-created_at')
+        
+        if request.method == 'POST':
+            content = request.POST.get('content')
+            parent_id = request.POST.get('parent_id')
+            
+            if parent_id:
+                parent_comment = get_object_or_404(Comment, id=parent_id)
+                comment = Comment.objects.create(startup_idea=idea, user=request.user, content=content, parent=parent_comment)
+                notification_recipient = parent_comment.user
+                notification_content = f"{request.user.username} replied to your comment: {content[:50]}..."
+            else:
+                comment = Comment.objects.create(startup_idea=idea, user=request.user, content=content)
+                notification_recipient = idea.user
+                notification_content = f"{request.user.username} commented on your idea: {content[:50]}..."
+
+            if notification_recipient != request.user:
+                Notification.objects.create(
+                    user=notification_recipient,
+                    content=notification_content,
+                    comment=comment
+                )
+
+            return redirect('chat:public_idea_detail', idea_id=idea.id)
+        
         return render(request, 'chat/public_idea_detail.html', {
             'idea': idea,
             'comments': comments,
@@ -127,17 +153,28 @@ def add_comment(request, idea_id):
     if request.method == 'POST':
         idea = get_object_or_404(StartupIdea, id=idea_id, is_public=True)
         content = request.POST.get('content')
-        comment = Comment.objects.create(startup_idea=idea, user=request.user, content=content)
+        parent_id = request.POST.get('parent_id')
+        
+        if parent_id:
+            parent_comment = get_object_or_404(Comment, id=parent_id)
+            comment = Comment.objects.create(startup_idea=idea, user=request.user, content=content, parent=parent_comment)
+            notification_recipient = parent_comment.user
+            notification_content = f"{request.user.username} replied to your comment: {content[:50]}..."
+        else:
+            comment = Comment.objects.create(startup_idea=idea, user=request.user, content=content)
+            notification_recipient = idea.user
+            notification_content = f"{request.user.username} commented on your idea: {content[:50]}..."
 
-        if idea.user != request.user:
+        if notification_recipient != request.user:
             Notification.objects.create(
-                user=idea.user,
-                content=f"{request.user.username} commented on your idea: {content[:50]}...",
+                user=notification_recipient,
+                content=notification_content,
                 comment=comment
             )
 
         return JsonResponse({'status': 'success', 'comment_id': comment.id})
     return JsonResponse({'status': 'error'}, status=400)
+
 
 
 @login_required(login_url=reverse_lazy('chat:sign_in_or_sign_up'))
@@ -160,6 +197,18 @@ def notifications(request):
         'notifications': user_notifications,
         'unread_count': unread_count,
     })
+
+@login_required(login_url=reverse_lazy('chat:sign_in_or_sign_up'))
+def notification_redirect(request, notification_id):
+    notification = get_object_or_404(Notification, id=notification_id, user=request.user)
+    notification.is_read = True
+    notification.save()
+    
+    if notification.comment:
+        return redirect(reverse('chat:public_idea_detail', kwargs={'idea_id': notification.comment.startup_idea.id}) + f'#comment-{notification.comment.id}')
+    
+    # If there's no comment associated, redirect to a default page
+    return redirect('chat:notifications')
 
 def get_unread_notifications_count(request):
     if request.user.is_authenticated:

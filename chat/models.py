@@ -2,6 +2,7 @@ from django.db import models
 from django.utils import timezone
 from django.contrib.auth.models import AbstractUser
 from django.utils import timezone
+from django.urls import reverse
 
 
 class User(AbstractUser):
@@ -78,6 +79,7 @@ class Comment(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     content = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
+    parent = models.ForeignKey('self', null=True, blank=True, on_delete=models.CASCADE, related_name='replies')
 
     def __str__(self):
         return f"Comment by {self.user.email} on {self.startup_idea}"
@@ -89,12 +91,15 @@ class Comment(models.Model):
 class Notification(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications')
     content = models.TextField()
-    comment = models.ForeignKey(Comment, on_delete=models.CASCADE, null=True, blank=True, related_name='notification')  # New field
+    comment = models.ForeignKey(Comment, on_delete=models.CASCADE, null=True, blank=True, related_name='notification')
     created_at = models.DateTimeField(auto_now_add=True)
     is_read = models.BooleanField(default=False)
 
     def __str__(self):
         return f"Notification for {self.user.email}: {self.content[:50]}..."
+
+    def get_absolute_url(self):
+        return reverse('chat:public_idea_detail', kwargs={'idea_id': self.comment.startup_idea.id}) + f'#comment-{self.comment.id}'
 
 
 

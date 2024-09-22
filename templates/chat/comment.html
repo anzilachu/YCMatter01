@@ -1,0 +1,184 @@
+<!-- Update the comment.html template -->
+<li class="comment-item" id="comment-{{ comment.id }}">
+    <div class="comment-content">
+        <div class="comment-header">
+            <span class="comment-author">{{ comment.user.username }}</span>
+            <span class="comment-date">{{ comment.created_at|date:"F d, Y" }}</span>
+        </div>
+        <p>{{ comment.content }}</p>
+        <button class="reply-button" onclick="toggleReplyForm({{ comment.id }})">Reply</button>
+    </div>
+    
+    <div class="reply-form-container">
+        <form class="reply-form" id="reply-form-{{ comment.id }}">
+            {% csrf_token %}
+            <div class="reply-input-wrapper">
+                <textarea name="content" rows="1" placeholder="Type your reply..." required></textarea>
+                <button type="button" onclick="submitReply({{ comment.id }})">
+                    <i class="ri-send-plane-fill"></i>
+                </button>
+            </div>
+        </form>
+    </div>
+
+    {% if comment.replies.all %}
+        <ul class="comment-replies">
+            {% for reply in comment.replies.all %}
+                {% include "chat/comment.html" with comment=reply %}
+            {% endfor %}
+        </ul>
+    {% endif %}
+</li>
+
+<!-- Add these styles to your CSS -->
+<style>
+    .comment-item {
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        padding: 12px;
+        margin-bottom: 16px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+
+    .comment-content {
+        margin-bottom: 8px;
+    }
+
+    .comment-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 4px;
+    }
+
+    .comment-author {
+        font-weight: 600;
+        color: #1a73e8;
+    }
+
+    .comment-date {
+        font-size: 0.8rem;
+        color: #5f6368;
+    }
+
+    .reply-button {
+        background: none;
+        border: none;
+        color: #1a73e8;
+        cursor: pointer;
+        font-size: 0.9rem;
+        padding: 4px 8px;
+        border-radius: 4px;
+        transition: background-color 0.2s;
+    }
+
+    .reply-button:hover {
+        background-color: rgba(26, 115, 232, 0.1);
+    }
+
+    .reply-form-container {
+        margin-top: 8px;
+    }
+
+    .reply-form {
+        display: none;
+    }
+
+    .reply-input-wrapper {
+        display: flex;
+        align-items: center;
+        background-color: #fff;
+        border: 1px solid #dadce0;
+        border-radius: 24px;
+        padding: 4px 12px;
+    }
+
+    .reply-input-wrapper textarea {
+        flex-grow: 1;
+        border: none;
+        outline: none;
+        padding: 8px 0;
+        resize: none;
+        font-family: inherit;
+        font-size: 0.9rem;
+    }
+
+    .reply-input-wrapper button {
+        background: none;
+        border: none;
+        color: #1a73e8;
+        cursor: pointer;
+        padding: 4px;
+        border-radius: 50%;
+        transition: background-color 0.2s;
+    }
+
+    .reply-input-wrapper button:hover {
+        background-color: rgba(26, 115, 232, 0.1);
+    }
+
+    .comment-replies {
+        margin-left: 24px;
+        padding-left: 16px;
+        border-left: 2px solid #dadce0;
+    }
+</style>
+
+<!-- Update the main comment form at the bottom of the page -->
+<div class="main-comment-form-container">
+    <form class="comment-form" id="comment-form">
+        {% csrf_token %}
+        <div class="comment-input-wrapper">
+            <textarea name="content" rows="1" placeholder="Type your thoughts..." required></textarea>
+            <button type="submit">
+                <i class="ri-send-plane-fill"></i>
+            </button>
+        </div>
+    </form>
+</div>
+
+<style>
+    .main-comment-form-container {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background-color: #fff;
+        padding: 16px;
+        box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .comment-input-wrapper {
+        display: flex;
+        align-items: center;
+        background-color: #f8f9fa;
+        border: 1px solid #dadce0;
+        border-radius: 24px;
+        padding: 8px 16px;
+    }
+
+    .comment-input-wrapper textarea {
+        flex-grow: 1;
+        border: none;
+        outline: none;
+        background-color: transparent;
+        padding: 8px 0;
+        resize: none;
+        font-family: inherit;
+        font-size: 1rem;
+    }
+
+    .comment-input-wrapper button {
+        background: none;
+        border: none;
+        color: #1a73e8;
+        cursor: pointer;
+        padding: 8px;
+        border-radius: 50%;
+        transition: background-color 0.2s;
+    }
+
+    .comment-input-wrapper button:hover {
+        background-color: rgba(26, 115, 232, 0.1);
+    }
+</style>
