@@ -17,6 +17,9 @@
         .mobile-nav {
             display: none;
         }
+        .logout-popup {
+            display: none;
+        }
         .notification-badge {
             background-color: #0004ff98;
             color: rgb(255, 255, 255);
@@ -27,6 +30,12 @@
             top: -10px;
             left: 5px;
         }
+        .nav__links li.active a,
+        .mobile-nav__item.active .mobile-nav__link {
+            color: #FF6600;
+            font-weight: bold;
+        }
+
         @media (max-width: 768px) {
             .nav__header {
                 padding: 1rem;
@@ -60,6 +69,7 @@
 
             .mobile-nav__item {
                 text-align: center;
+                position: relative;
             }
 
             .mobile-nav__link {
@@ -78,21 +88,84 @@
 
             .mobile-nav__badge {
                 position: absolute;
-                top: 0;
-                right: 0;
-                background-color: #0004ff98;
+                top: -5px;
+                right: -5px;
+                background-color: #FF6600;
                 color: #ffffff;
-                border-radius: 50%;
-                padding: 4px 8px;
+                border-radius: 25%;
+                padding: 2px 6px;
                 font-size: 0.7em;
-                transform: translate(50%, -50%);
             }
 
             /* Hide the desktop nav on mobile */
             nav {
                 display: none;
             }
-        
+            .dropdown {
+                position: relative;
+                display: inline-block;
+            }
+            .dropdown-menu {
+                display: none;
+                position: absolute;
+                background-color: #f9f9f9;
+                min-width: 1060px;
+                box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+                z-index: 1;
+            }
+            .dropdown-menu a {
+                color: black;
+                padding: 12px 16px;
+                text-decoration: none;
+                display: block;
+            }
+            .dropdown-menu a:hover {
+                background-color: #f1f1f1;
+            }
+            .show {
+                display: block;
+            }
+            
+            /* Logout Popup Styles */
+            .logout-popup {
+                display: none;
+                position: fixed;
+                left: 0;
+                top: 0;
+                width: 100%;
+                height: 100%;
+                background-color: rgba(0, 0, 0, 0.5);
+                z-index: 2000;
+            }
+            .logout-popup-content {
+                background-color: #fff;
+                margin: 20% auto;
+                padding: 20px;
+                border-radius: 5px;
+                width: 80%;
+                max-width: 300px;
+                text-align: center;
+            }
+            .logout-popup-buttons {
+                margin-top: 20px;
+            }
+            .logout-popup-buttons button {
+                margin: 0 10px;
+                padding: 10px 20px;
+                border: none;
+                border-radius: 5px;
+                cursor: pointer;
+            }
+            .logout-confirm {
+                background-color: #FF6600;
+                color: white;
+            }
+            .logout-cancel {
+                background-color: #ccc;
+            }
+            .mobile-nav__item.active .mobile-nav__icon {
+                color: #FF6600
+            }
         }
     </style>
 <nav>
@@ -105,12 +178,12 @@
         </div>
     </div>
     <ul class="nav__links" id="nav-links">
-        <li><a href="{% url 'chat:home' %}">Home</a></li>
-        <li><a href="{% url 'chat:about' %}">About Us</a></li>
-        <li><a href="{% url 'chat:contact' %}">Contact</a></li>
+        <li data-page="home"><a href="{% url 'chat:home' %}">Home</a></li>
+        <li data-page="about"><a href="{% url 'chat:about' %}">About Us</a></li>
+        <li data-page="contact"><a href="{% url 'chat:contact' %}">Contact</a></li>
         {% if user.is_authenticated %}
-            <li><a href="{% url 'chat:idea_list' %}">My Ideas</a></li>
-            <li>
+            <li data-page="idea_list"><a href="{% url 'chat:idea_list' %}">My Ideas</a></li>
+            <li data-page="notifications">
                 <a href="{% url 'chat:notifications' %}">
                     Notifications
                     {% if unread_notifications_count > 0 %}
@@ -144,36 +217,105 @@
 </nav>
 <div class="mobile-nav">
     <ul class="mobile-nav__links">
-        <li class="mobile-nav__item">
+        <li class="mobile-nav__item" data-page="home">
             <a href="{% url 'chat:home' %}" class="mobile-nav__link">
-                <i class="ri-message-3-line mobile-nav__icon"></i>
-                <span>Chats</span>
+                <i class="ri-home-4-line mobile-nav__icon"></i>
+                <span>Home</span>
             </a>
         </li>
-        <li class="mobile-nav__item">
+        <li class="mobile-nav__item" data-page="idea_list">
             <a href="{% url 'chat:idea_list' %}" class="mobile-nav__link">
-                <i class="ri-camera-line mobile-nav__icon"></i>
-                <span>Updates</span>
+                <i class="ri-lightbulb-line mobile-nav__icon"></i>
+                <span>My Ideas</span>
             </a>
         </li>
-        <li class="mobile-nav__item">
+        <li class="mobile-nav__item" data-page="notifications">
             <a href="{% url 'chat:notifications' %}" class="mobile-nav__link">
-                <i class="ri-group-line mobile-nav__icon"></i>
-                <span>Communities</span>
-                {% if unread_notifications_count > 0 %}
-                    <span class="mobile-nav__badge">{{ unread_notifications_count }}</span>
-                {% endif %}
+                <i class="ri-notification-3-line mobile-nav__icon"></i>
+                <span>Notifications</span>
             </a>
+            {% if unread_notifications_count > 0 %}
+                <span class="mobile-nav__badge">{{ unread_notifications_count }}</span>
+            {% endif %}
         </li>
         <li class="mobile-nav__item">
-            <a href="{% url 'chat:about' %}" class="mobile-nav__link">
-                <i class="ri-phone-line mobile-nav__icon"></i>
-                <span>Calls</span>
-            </a>
+            {% if user.is_authenticated %}
+                <a href="#" class="mobile-nav__link" onclick="showLogoutPopup()">
+                    <i class="ri-user-line mobile-nav__icon"></i>
+                    <span>{{ user.username }}</span>
+                </a>
+            {% else %}
+                <a href="{% url 'chat:sign_in_or_sign_up' %}" class="mobile-nav__link">
+                    <i class="ri-user-line mobile-nav__icon"></i>
+                    <span>Login</span>
+                </a>
+            {% endif %}
         </li>
     </ul>
 </div>
 
+<!-- Logout Popup -->
+<div id="logoutPopup" class="logout-popup">
+    <div class="logout-popup-content">
+        <h2>Logout Confirmation</h2>
+        <p>Are you sure you want to logout?</p>
+        <div class="logout-popup-buttons">
+            <button class="logout-confirm" onclick="confirmLogout()">Yes, Logout</button>
+            <button class="logout-cancel" onclick="hideLogoutPopup()">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    function toggleDropdown() {
+        document.getElementById("logoutDropdown").classList.toggle("show");
+    }
+
+    function toggleMobileDropdown() {
+        document.getElementById("mobileLogoutDropdown").classList.toggle("show");
+    }
+
+    // Close the dropdowns if the user clicks outside of them
+    window.onclick = function(event) {
+        if (!event.target.matches('.dropdown-toggle')) {
+            var dropdowns = document.getElementsByClassName("dropdown-menu");
+            for (var i = 0; i < dropdowns.length; i++) {
+                var openDropdown = dropdowns[i];
+                if (openDropdown.classList.contains('show')) {
+                    openDropdown.classList.remove('show');
+                }
+            }
+        }
+    }
+
+    // Logout popup functions
+    function showLogoutPopup() {
+        document.getElementById("logoutPopup").style.display = "block";
+    }
+
+    function hideLogoutPopup() {
+        document.getElementById("logoutPopup").style.display = "none";
+    }
+
+    function confirmLogout() {
+        window.location.href = "{% url 'chat:logout' %}";
+    }
+    function setActiveNavItem() {
+        const currentPage = '{{ request.resolver_match.url_name }}';
+        const navItems = document.querySelectorAll('.nav__links li, .mobile-nav__item');
+        
+        navItems.forEach(item => {
+            if (item.dataset.page === currentPage) {
+                item.classList.add('active');
+            } else {
+                item.classList.remove('active');
+            }
+        });
+    }
+
+    // Call setActiveNavItem when the page loads
+    document.addEventListener('DOMContentLoaded', setActiveNavItem);
+</script>
 
 </body>
 </html>

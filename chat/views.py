@@ -158,7 +158,7 @@ def notifications(request):
     
     return render(request, 'chat/notifications.html', {
         'notifications': user_notifications,
-        'unread_count': unread_count
+        'unread_count': unread_count,
     })
 
 def get_unread_notifications_count(request):

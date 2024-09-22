@@ -14,6 +14,7 @@
             -webkit-user-select: none;
             -moz-user-select: none;
             -ms-user-select: none;
+            box-sizing: border-box;
         }
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -54,6 +55,7 @@
             padding: 20px;
             margin-bottom: 20px;
             display: flex;
+            flex-wrap: wrap;
             align-items: flex-start;
             gap: 15px;
             transition: transform 0.3s ease, box-shadow 0.3s ease;
@@ -67,10 +69,11 @@
         .notification-icon {
             font-size: 2rem;
             color: #2ecc71;
+            flex: 0 0 auto;
         }
 
         .notification-content {
-            flex-grow: 1;
+            flex: 1 1 calc(100% - 80px);
             font-size: 1.1rem;
             color: #2c3e50;
         }
@@ -99,12 +102,14 @@
             font-size: 0.9rem;
             color: #95a5a6;
             text-align: right;
+            flex: 1 0 100%;
         }
 
         .notification-meta {
             display: flex;
             justify-content: space-between;
             align-items: center;
+            width: 100%;
         }
 
         .unread {
@@ -119,13 +124,61 @@
             font-size: 1.2rem;
             margin-top: 20px;
         }
+
+        @media (max-width: 768px) {
+            .notification-container {
+                margin: 30px auto;
+                padding: 15px;
+            }
+
+            .notification-title {
+                font-size: 2.2rem;
+            }
+
+            .notification-item {
+                padding: 15px;
+            }
+
+            .notification-content {
+                font-size: 1rem;
+            }
+
+            .notification-comment {
+                font-size: 0.9rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .notification-title {
+                font-size: 1.8rem;
+            }
+
+            .notification-item {
+                flex-direction: column;
+            }
+
+            .notification-icon {
+                align-self: flex-start;
+            }
+
+            .notification-content {
+                flex: 1 1 100%;
+            }
+
+            .notification-date {
+                text-align: left;
+                margin-top: 10px;
+            }
+            .notification-list .notification-item:last-child {
+                margin-bottom: 80px; /* Adjust the margin value as needed */
+            }
+
+        }
     </style>
 </head>
 
 <body>
-    <nav>
-        <!-- Include your navigation here -->
-    </nav>
+    {% include 'chat/nav_base.html' %}
 
     <div class="notification-container">
         <h1 class="notification-title">Your Notifications</h1>
