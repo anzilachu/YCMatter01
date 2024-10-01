@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ module.title }} Tasks</title>
+    <style>
+        /* Base styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Helvetica Neue', sans-serif;
+        }
+
+        body {
+            background-color: #f4f5f7;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            padding: 2rem 2rem 5rem;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 2rem;
+            letter-spacing: 0.5px;
+            color: #333;
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            flex-grow: 1;
+        }
+
+        /* Section titles */
+        .section-title {
+            font-size: 1.8rem;
+            margin-bottom: 1.5rem;
+            color: #333;
+        }
+
+        .tasks-container, .todos-container {
+            background: #fff;
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .task-item, .todo-item {
+            background: #fff;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .task-item:hover, .todo-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+        }
+
+        .task-item p, .todo-item p {
+            font-size: 1.2rem;
+            color: #444;
+            line-height: 1.6;
+        }
+
+        .task-item form, .todo-item form {
+            display: inline;
+        }
+
+        .add-todo {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .add-todo input {
+            flex-grow: 1;
+            padding: 0.8rem;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            font-size: 1rem;
+        }
+
+        .add-todo button {
+            margin-left: 1rem;
+            padding: 0.8rem 1.5rem;
+            background-color: #333;
+            color: #fff;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+        }
+
+        .add-todo button:hover {
+            background-color: #555;
+        }
+
+        a, button {
+            display: inline-block;
+            margin-top: 2rem;
+            padding: 0.8rem 1.5rem;
+            background-color: #333;
+            color: #fff;
+            border-radius: 10px;
+            text-decoration: none;
+            transition: background-color 0.3s ease;
+            border: none;
+            cursor: pointer;
+        }
+
+        a:hover, button:hover {
+            background-color: #555;
+        }
+
+        .todo-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .todo-actions button {
+            padding: 0.5rem;
+            font-size: 0.8rem;
+        }
+
+        .completed {
+            text-decoration: line-through;
+            opacity: 0.6;
+        }
+
+        /* Modern Paginator Styles */
+        .paginator {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: #ffffff;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 1rem 2rem;
+            z-index: 1000;
+        }
+
+        .paginator a {
+            display: flex;
+            align-items: center;
+            color: #ffffff;
+            text-decoration: none;
+            font-weight: bold;
+            transition: color 0.3s ease;
+            margin-top: 0;
+            width: 200px;
+        }
+
+        .paginator svg {
+            width: 24px;
+            height: 24px;
+            margin-right: 0.5rem;
+        }
+
+        /* Responsive design for mobile */
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem 1rem 5rem;
+            }
+
+            .container {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            .tasks-container, .todos-container {
+                padding: 1.5rem;
+                box-shadow: none;
+            }
+
+            .task-item, .todo-item {
+                flex-direction: column;
+                align-items: flex-start;
+                padding: 1rem;
+                margin-bottom: 1rem;
+            }
+
+            .task-item p, .todo-item p {
+                font-size: 1rem;
+                margin-bottom: 0.5rem;
+            }
+
+            .add-todo {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .add-todo input, .add-todo button {
+                width: 100%;
+                margin-left: 0;
+            }
+
+            .task-item form, .todo-item form {
+                width: 100%;
+                display: flex;
+                justify-content: flex-start;
+            }
+
+            .task-item form button, .todo-item form button {
+                width: 100%;
+                margin-top: 0.5rem;
+            }
+
+            a, button {
+                width: 100%;
+            }
+
+            .paginator {
+                padding: 0.5rem 1rem;
+            }
+
+            .paginator a {
+                font-size: 0.9rem;
+            }
+
+            .paginator svg {
+                width: 20px;
+                height: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- Left: Tasks Section -->
+        <div class="tasks-container">
+            <h2 class="section-title">For <span style="color: #FF6600;">You</span></h2>
+            <p>Research and complete each task</p><br>
+            {% for task in tasks %}
+                <div class="task-item {% if task.is_completed %}completed{% endif %}">
+                    <p>{{ task.description }}</p>
+                    <form method="post">
+                        {% csrf_token %}
+                        <input type="hidden" name="task_id" value="{{ task.id }}">
+                        <button type="submit" name="toggle_task">
+                            {% if task.is_completed %}Undo{% else %}Complete{% endif %}
+                        </button>
+                    </form>
+                </div>
+            {% endfor %}
+        </div>
+
+        <!-- Right: Todos Section -->
+        <div class="todos-container">
+            <h2 class="section-title"><span style="color: #FF6600;">personal</span> todo</h2>
+            <form method="post" class="add-todo">
+                {% csrf_token %}
+                <input type="text" name="description" placeholder="Add a new todo" required>
+                <button style="margin-top: 0px;" type="submit" name="add_todo">Add</button>
+            </form>
+        
+            {% if todos %}
+                {% for todo in todos %}
+                    <div class="todo-item {% if todo.is_completed %}completed{% endif %}">
+                        <p>{{ todo.description }}</p>
+                        <div class="todo-actions">
+                            <form method="post" style="display: inline;">
+                                {% csrf_token %}
+                                <input type="hidden" name="todo_id" value="{{ todo.id }}">
+                                <button type="submit" name="toggle_todo">
+                                    {% if todo.is_completed %}Undo{% else %}Complete{% endif %}
+                                </button>
+                            </form>
+                            <form method="post" style="display: inline;">
+                                {% csrf_token %}
+                                <input type="hidden" name="todo_id" value="{{ todo.id }}">
+                                <button type="submit" name="delete_todo">Delete</button>
+                            </form>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="motivation-quote">
+                    <p>"The journey of a thousand miles begins with one step. Start today!"</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Modern Paginator -->
+    <div class="paginator">
+        <a href="{% url 'chat:module_list' module.startup_plan.id %}" return false;" style="background-color: #FF6600; border: 1px solid black;">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+            Back
+        </a>
+    </div>
+</body>
+</html>

@@ -20,7 +20,6 @@ urlpatterns = [
 
     path('get-notification-count/', get_notification_count, name='get_notification_count'),
 
-
     path('public-ideas/', public_idea_list, name='public_idea_list'),
 
     path('upvote/<int:idea_id>/',upvote_idea, name='upvote_idea'),
@@ -49,6 +48,10 @@ urlpatterns = [
     path('upvote/<int:idea_id>/', upvote_idea, name='upvote_idea'),
 
     path('submit_feedback/',submit_feedback, name='submit_feedback'),
+
+    path('generate/', generate_flow, name='generate_flow'),
+    path('modules/<int:plan_id>/', module_list, name='module_list'),
+    path('tasks/<int:module_id>/', generate_tasks, name='generate_tasks'),
     
 
     path('interview/', interview_view, name='interview_view'),

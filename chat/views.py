@@ -1,3 +1,4 @@
+from ast import Module
 import os
 from django.shortcuts import render, HttpResponse
 from django.http import JsonResponse
@@ -7,7 +8,7 @@ from django.core.signing import Signer, BadSignature
 from django.contrib.auth import authenticate, login, logout
 from django.views.decorators.csrf import csrf_exempt
 from .forms import SignUpForm, OTPVerificationForm, SignInForm
-from .models import Otp, User
+from .models import Otp, StartupPlan, Task, Todo, User
 import datetime
 from django.core.mail import send_mail
 from django.utils import timezone
@@ -23,6 +24,8 @@ from django.contrib.auth.decorators import login_required
 from django.urls import reverse_lazy
 from dotenv import load_dotenv
 from .models import StartupIdea, User, Payment,Transaction
+from .models import StartupPlan, Module, Task
+
 from .groq_analysis import analyze_startup, parse_scores, format_analysis_text
 from django.shortcuts import render, redirect, get_object_or_404
 from django.db.models import Max
@@ -37,7 +40,6 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.urls import reverse_lazy
 from django.http import JsonResponse
-from .models import StartupIdea, Comment, Notification
 
 logger = logging.getLogger(__name__)
 
@@ -219,6 +221,8 @@ def get_unread_notifications_count(request):
 def get_notification_count(request):
     unread_count = request.user.notifications.filter(is_read=False).count()
     return JsonResponse({'count': unread_count})
+
+
 
 
 @login_required(login_url=reverse_lazy('chat:sign_in_or_sign_up'))
@@ -928,3 +932,108 @@ def payment_success(request):
 @login_required
 def check_premium_status(request):
     return JsonResponse({'is_premium': request.user.is_premium})
+
+client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
+
+def clean_text(text):
+    # Remove asterisks, quotation marks, numbering, and capitalize
+    cleaned = re.sub(r'\*+', '', text)
+    cleaned = re.sub(r'^"|"$', '', cleaned)
+    cleaned = re.sub(r'^\d+\.\s*', '', cleaned)
+    return cleaned.strip().capitalize()
+
+@login_required
+def generate_flow(request):
+    user_startup_plans = StartupPlan.objects.filter(user=request.user).order_by('-created_at')
+    print(user_startup_plans)
+
+    if request.method == 'POST':
+        startup_idea = request.POST.get('startup_idea')
+        description = request.POST.get('description')
+        personal_goals = request.POST.get('personal_goals')
+
+        startup_plan = StartupPlan.objects.create(
+            user=request.user,
+            startup_idea=startup_idea,
+            description=description,
+            personal_goals=personal_goals
+        )
+
+        client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
+        prompt = f"Given the following startup idea: '{startup_idea}', with description: '{description}' and personal goals: '{personal_goals}', generate 5 personalized module titles for the startup to succeed. List only the short titles in order of priority."
+
+        chat_completion = client.chat.completions.create(
+            messages=[
+                {"role": "user", "content": prompt},
+                {"role": "system", "content": "Respond with only the 5 module titles, one per line. No introductory text or explanations."}
+            ],
+            model="llama3-8b-8192",
+        )
+
+        module_titles = chat_completion.choices[0].message.content.strip().split('\n')
+
+        for i, title in enumerate(module_titles, start=1):
+            cleaned_title = clean_text(title)
+            if cleaned_title:
+                Module.objects.create(startup_plan=startup_plan, title=cleaned_title, order=i)
+
+        return redirect('chat:module_list', plan_id=startup_plan.id)
+
+    return render(request, 'generate_flow.html', {'user_startup_plans': user_startup_plans})
+
+
+@login_required
+def module_list(request, plan_id):
+    startup_plan = get_object_or_404(StartupPlan, id=plan_id, user=request.user)
+    modules = startup_plan.modules.all()
+    return render(request, 'module_list.html', {'startup_plan': startup_plan, 'modules': modules})
+
+@login_required
+def generate_tasks(request, module_id):
+    module = get_object_or_404(Module, id=module_id, startup_plan__user=request.user)
+
+    if not module.tasks.exists():
+        client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
+        prompt = f"Given the startup idea '{module.startup_plan.startup_idea}' and the module '{module.title}', generate 5 specific tasks to complete this module."
+
+        chat_completion = client.chat.completions.create(
+            messages=[
+                {"role": "user", "content": prompt},
+                {"role": "system", "content": "Respond with only the 5 task titles, one per line. No introductory text or explanations."}
+            ],
+            model="llama3-8b-8192",
+        )
+
+        task_descriptions = chat_completion.choices[0].message.content.strip().split('\n')
+
+        for i, description in enumerate(task_descriptions, start=1):
+            cleaned_description = clean_text(description)
+            if cleaned_description:
+                Task.objects.create(module=module, description=cleaned_description, order=i)
+
+    tasks = module.tasks.all()
+    todos = Todo.objects.filter(user=request.user, module=module).order_by('-created_at')
+
+    if request.method == 'POST':
+        if 'add_todo' in request.POST:
+            description = request.POST.get('description')
+            if description:
+                Todo.objects.create(user=request.user, module=module, description=description)
+        elif 'toggle_task' in request.POST:
+            task_id = request.POST.get('task_id')
+            task = get_object_or_404(Task, id=task_id, module=module)
+            task.is_completed = not task.is_completed
+            task.save()
+        elif 'toggle_todo' in request.POST:
+            todo_id = request.POST.get('todo_id')
+            todo = get_object_or_404(Todo, id=todo_id, user=request.user, module=module)
+            todo.is_completed = not todo.is_completed
+            todo.save()
+        elif 'delete_todo' in request.POST:
+            todo_id = request.POST.get('todo_id')
+            todo = get_object_or_404(Todo, id=todo_id, user=request.user, module=module)
+            todo.delete()
+        
+        return redirect('chat:generate_tasks', module_id=module_id)
+
+    return render(request, 'task_list.html', {'module': module, 'tasks': tasks, 'todos': todos})

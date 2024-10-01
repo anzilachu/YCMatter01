@@ -127,3 +127,39 @@ class Transaction(models.Model):
 
     def __str__(self):
         return f"{self.payment.user.email} - {self.order_id}"
+    
+
+class StartupPlan(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='startup_plans')
+    startup_idea = models.CharField(max_length=255)
+    description = models.TextField()
+    personal_goals = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user.username}'s plan: {self.startup_idea}"
+
+class Module(models.Model):
+    startup_plan = models.ForeignKey(StartupPlan, on_delete=models.CASCADE, related_name='modules')
+    title = models.CharField(max_length=255)
+    order = models.IntegerField()
+    description = models.CharField(max_length=2005)
+
+    class Meta:
+        ordering = ['order']
+
+    def __str__(self):
+        return f"{self.startup_plan.startup_idea} - Module: {self.title}"
+
+class Task(models.Model):
+    module = models.ForeignKey(Module, related_name='tasks', on_delete=models.CASCADE)
+    description = models.TextField()
+    order = models.IntegerField()
+    is_completed = models.BooleanField(default=False)
+
+class Todo(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    module = models.ForeignKey(Module, on_delete=models.CASCADE)
+    description = models.TextField()
+    is_completed = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)

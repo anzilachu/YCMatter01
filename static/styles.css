@@ -1002,7 +1002,7 @@ input::placeholder {
 }
 
 .community-content h2 {
-  font-size: 1.5rem;
+  font-size: 2.5rem;
   color: var(--text-dark);
   margin-bottom: 20px;
 }
@@ -1097,6 +1097,11 @@ input::placeholder {
     width: 80%;
     margin: 0 auto 20px;
     display: block;
+  }
+  .community-content h2 {
+    font-size: 2rem;
+    color: var(--text-dark);
+    margin-bottom: 20px;
   }
 }
 

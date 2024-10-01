@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generate Startup flow</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap');
+
+        :root {
+            --primary-color: #000000;
+            --secondary-color: #ffffff;
+            --accent-color: #f0f0f0;
+            --text-color: #333333;
+            --orange-color: #FF6600;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body, html {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--secondary-color);
+            color: var(--text-color);
+            min-height: 100vh;
+            position: relative;
+            padding-bottom: 80px; /* Space for the paginator */
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 2rem;
+            padding: 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        @media (min-width: 768px) {
+            .container {
+                grid-template-columns: 2fr 1fr;
+                padding: 4rem;
+            }
+        }
+
+        .form-section, .plans-section {
+            background-color: var(--secondary-color);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            padding: 2rem;
+        }
+
+        h1, h2 {
+            font-size: 2rem;
+            font-weight: 600;
+            margin-bottom: 2rem;
+            color: var(--primary-color);
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        label {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-color);
+        }
+
+        input[type="text"], textarea {
+            width: 100%;
+            padding: 1rem;
+            border: 2px solid var(--accent-color);
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        input[type="text"]:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.1);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        button {
+            background-color: var(--orange-color);
+            color: var(--secondary-color);
+            border: none;
+            padding: 1rem 2rem;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            align-self: center;
+        }
+
+        .startup-list {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .startup-item {
+            background-color: var(--accent-color);
+            padding: 1.5rem;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .startup-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .startup-item h3 {
+            font-size: 1.2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .startup-item p {
+            font-size: 0.9rem;
+            color: var(--text-color);
+            margin-bottom: 1rem;
+        }
+
+        .startup-item a {
+            display: inline-block;
+            background-color: var(--primary-color);
+            color: var(--secondary-color);
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        .startup-item a:hover {
+            background-color: var(--text-color);
+        }
+
+        /* New styles for the paginator */
+
+        .pagination-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background-color: #fff;
+            box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: center;
+            padding: 1rem 2rem;
+            z-index: 1000;
+        }
+        .pagination-bar a {
+            text-decoration: none;
+            font-size: 1.2rem;
+            color: #333;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            transition: color 0.3s ease;
+        }
+
+        .pagination-bar a:hover {
+            color: #FF6600;
+        }
+
+        .pagination-bar a svg {
+            margin-right: 8px;
+            fill: #333;
+            transition: fill 0.3s ease;
+        }
+
+        .pagination-bar a:hover svg {
+            fill: #FF6600;
+        }
+
+        /* Icons */
+        .home-icon, .back-icon {
+            width: 20px;
+            height: 20px;
+        }
+
+        @media (max-width: 767px) {
+            .container {
+                padding: 1rem;
+            }
+
+            h1 {
+                font-size: 1.5rem;
+            }
+
+            .form-section, .plans-section {
+                padding: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="form-section">
+            <form method="POST" action="{% url 'chat:generate_flow' %}">
+                {% csrf_token %}
+                <div class="input-group">
+                    <label for="startup_idea">Your Startup Idea</label>
+                    <input type="text" id="startup_idea" name="startup_idea" placeholder="Enter your startup idea" required>
+                </div>
+                <div class="input-group">
+                    <label for="description">Description</label>
+                    <textarea id="description" name="description" placeholder="Describe your idea in more detail" required></textarea>
+                </div>
+                <div class="input-group">
+                    <label for="personal_goals">Personal Goals</label>
+                    <textarea id="personal_goals" name="personal_goals" placeholder="What are your personal goals for this startup?" required></textarea>
+                </div>
+                <button type="submit">Generate Plan</button>
+            </form>
+        </div>
+        <div class="plans-section">
+            <h2>My <span style="color: #FF6600;">Plans</span> </h2>
+            <div class="startup-list">
+                {% for plan in user_startup_plans %}
+                    <div class="startup-item">
+                        <h3>{{ plan.startup_idea }}</h3>
+                        <p>Created: {{ plan.created_at|date:"F j, Y" }}</p>
+                        <a href="{% url 'chat:module_list' plan_id=plan.id %}">View Modules</a>
+                    </div>
+                {% empty %}
+                    <p>You haven't created any startup plans yet.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- New paginator -->
+    <div class="pagination-bar">
+        <a href="{% url 'chat:home' %}">
+            <!-- Home icon -->
+            <svg class="home-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                <path d="M3 12l7-7 7 7v7h-4v-4h-6v4h-4z"></path>
+            </svg>
+            Home
+        </a>
+    </div>
+</body>
+</html>

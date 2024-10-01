@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Startup Modules</title>
+    <style>
+        /* Base styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Helvetica Neue', sans-serif;
+        }
+
+        body {
+            background-color: #f4f5f7;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            margin-top: 80px;
+            padding-bottom: 60px; /* Ensures body doesn't get hidden under the pagination bar */
+        }
+
+        .container {
+            max-width: 1200px;
+            padding: 2rem;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 2.5rem;
+            letter-spacing: 0.5px;
+            color: #333;
+        }
+
+        p {
+            font-size: 1.2rem;
+            text-align: center;
+            margin-bottom: 2rem;
+            color: #666;
+        }
+
+        .module-card {
+            background: #fff;
+            border-radius: 14px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            cursor: pointer;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .module-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+        }
+
+        .module-card h2 {
+            font-size: 20px;
+            color: #444;
+        }
+
+        .module-card p {
+            font-size: 1.2rem;
+            color: #666;
+        }
+
+        @media (min-width: 768px) {
+            .container {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+                gap: 2rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+        }
+
+        /* Pagination bar styles */
+        .pagination-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background-color: #fff;
+            box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            padding: 1rem 2rem;
+            z-index: 1000;
+        }
+
+        .pagination-bar a {
+            text-decoration: none;
+            font-size: 1.2rem;
+            color: #333;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            transition: color 0.3s ease;
+        }
+
+        .pagination-bar a:hover {
+            color: #FF6600;
+        }
+
+        .pagination-bar a svg {
+            margin-right: 8px;
+            fill: #333;
+            transition: fill 0.3s ease;
+        }
+
+        .pagination-bar a:hover svg {
+            fill: #FF6600;
+        }
+
+        /* Icons */
+        .home-icon, .back-icon {
+            width: 20px;
+            height: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1><span style="color: #FF6600;">Module's for you</span></h1>
+    <p>Choose one to move forward</p>
+    
+    <div class="container">
+        {% for module in modules %}
+        <div class="module-card" onclick="location.href='{% url 'chat:generate_tasks' module.id %}'">
+            <h2>{{ module.title }}</h2>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Pagination Bar -->
+    <div class="pagination-bar">
+        <a href="{% url 'chat:generate_flow' %}">
+            <!-- Back icon -->
+            <svg class="back-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                <path d="M15 19l-7-7 7-7"></path>
+            </svg>
+            Back
+        </a>
+        <a href="{% url 'chat:home' %}">
+            <!-- Home icon -->
+            <svg class="home-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                <path d="M3 12l7-7 7 7v7h-4v-4h-6v4h-4z"></path>
+            </svg>
+            Home
+        </a>
+    </div>
+</body>
+
+</html>
