@@ -1,0 +1,10 @@
+<h2 class="section-title">For <span style="color: #FF6600;">You</span></h2>
+<p>Research and complete each task</p><br>
+{% for task in tasks %}
+    <div class="task-item {% if task.is_completed %}completed{% endif %}">
+        <p>{{ task.description }}</p>
+        <button class="toggle-task" data-task-id="{{ task.id }}">
+            {% if task.is_completed %}Undo{% else %}Complete{% endif %}
+        </button>
+    </div>
+{% endfor %}

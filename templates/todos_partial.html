@@ -1,0 +1,25 @@
+<h2 class="section-title"><span style="color: #FF6600;">personal</span> todo</h2>
+<p style="color: gray;">what are you going to achive today ?</p><br>
+<form id="add-todo-form" class="add-todo">
+    {% csrf_token %}
+    <input type="text" name="description" placeholder="Add a new todo" required>
+    <button style="margin-top: 0px;" type="submit">Add</button>
+</form>
+
+{% if todos %}
+    {% for todo in todos %}
+        <div class="todo-item {% if todo.is_completed %}completed{% endif %}">
+            <p>{{ todo.description }}</p>
+            <div class="todo-actions">
+                <button class="toggle-todo" data-todo-id="{{ todo.id }}">
+                    {% if todo.is_completed %}Undo{% else %}Complete{% endif %}
+                </button>
+                <button class="delete-todo" data-todo-id="{{ todo.id }}">Delete</button>
+            </div>
+        </div>
+    {% endfor %}
+{% else %}
+    <div class="motivation-quote">
+        <p>"The journey of a thousand miles begins with one step. Start today!"</p>
+    </div>
+{% endif %}

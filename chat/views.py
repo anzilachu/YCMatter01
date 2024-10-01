@@ -25,6 +25,7 @@ from django.urls import reverse_lazy
 from dotenv import load_dotenv
 from .models import StartupIdea, User, Payment,Transaction
 from .models import StartupPlan, Module, Task
+from django.template.loader import render_to_string
 
 from .groq_analysis import analyze_startup, parse_scores, format_analysis_text
 from django.shortcuts import render, redirect, get_object_or_404
@@ -40,6 +41,9 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.urls import reverse_lazy
 from django.http import JsonResponse
+from django.views.decorators.http import require_http_methods
+
+
 
 logger = logging.getLogger(__name__)
 
@@ -989,6 +993,7 @@ def module_list(request, plan_id):
     return render(request, 'module_list.html', {'startup_plan': startup_plan, 'modules': modules})
 
 @login_required
+@require_http_methods(["GET", "POST"])
 def generate_tasks(request, module_id):
     module = get_object_or_404(Module, id=module_id, startup_plan__user=request.user)
 
@@ -1014,7 +1019,7 @@ def generate_tasks(request, module_id):
     tasks = module.tasks.all()
     todos = Todo.objects.filter(user=request.user, module=module).order_by('-created_at')
 
-    if request.method == 'POST':
+    if request.method == 'POST' and request.headers.get('X-Requested-With') == 'XMLHttpRequest':
         if 'add_todo' in request.POST:
             description = request.POST.get('description')
             if description:
@@ -1034,6 +1039,12 @@ def generate_tasks(request, module_id):
             todo = get_object_or_404(Todo, id=todo_id, user=request.user, module=module)
             todo.delete()
         
-        return redirect('chat:generate_tasks', module_id=module_id)
+        # Refresh the querysets after modifications
+        tasks = module.tasks.all()
+        todos = Todo.objects.filter(user=request.user, module=module).order_by('-created_at')
+        
+        tasks_html = render_to_string('tasks_partial.html', {'tasks': tasks, 'module': module})
+        todos_html = render_to_string('todos_partial.html', {'todos': todos, 'module': module})
+        return JsonResponse({'tasks_html': tasks_html, 'todos_html': todos_html})
 
     return render(request, 'task_list.html', {'module': module, 'tasks': tasks, 'todos': todos})

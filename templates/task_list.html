@@ -30,8 +30,8 @@
         }
 
         .container {
-            display: grid;
-            grid-template-columns: 2fr 1fr;
+            display: flex;
+            flex-direction: column;
             gap: 2rem;
             width: 100%;
             max-width: 1200px;
@@ -98,7 +98,7 @@
         .add-todo button {
             margin-left: 1rem;
             padding: 0.8rem 1.5rem;
-            background-color: #333;
+            background-color: #FF6600;
             color: #fff;
             border-radius: 10px;
             border: none;
@@ -164,7 +164,7 @@
             font-weight: bold;
             transition: color 0.3s ease;
             margin-top: 0;
-            width: 200px;
+            width: 140px;
         }
 
         .paginator svg {
@@ -180,7 +180,7 @@
             }
 
             .container {
-                grid-template-columns: 1fr;
+
                 gap: 1rem;
             }
 
@@ -239,36 +239,126 @@
                 height: 20px;
             }
         }
+        @media (min-width: 769px) {
+            .container {
+                flex-direction: row;
+            }
+
+            .tasks-container {
+                flex: 2;
+            }
+
+            .todos-container {
+                flex: 1;
+            }
+        }
+
     </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            function getCookie(name) {
+                let cookieValue = null;
+                if (document.cookie && document.cookie !== '') {
+                    const cookies = document.cookie.split(';');
+                    for (let i = 0; i < cookies.length; i++) {
+                        const cookie = cookies[i].trim();
+                        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                            break;
+                        }
+                    }
+                }
+                return cookieValue;
+            }
+
+            function csrfSafeMethod(method) {
+                return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+            }
+
+            $.ajaxSetup({
+                beforeSend: function(xhr, settings) {
+                    if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+                        xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
+                    }
+                }
+            });
+
+            function performAjaxAction(data, successCallback) {
+                $.ajax({
+                    url: '',
+                    type: 'POST',
+                    data: data,
+                    headers: {'X-Requested-With': 'XMLHttpRequest'},
+                    success: function(response) {
+                        if (response.tasks_html) {
+                            $('#tasks-container').html(response.tasks_html);
+                        }
+                        if (response.todos_html) {
+                            $('#todos-container').html(response.todos_html);
+                        }
+                        if (successCallback) {
+                            successCallback(response);
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error("AJAX error: " + status + ": " + error);
+                    }
+                });
+            }
+
+            // Add todo
+            $(document).on('submit', '#add-todo-form', function(e) {
+                e.preventDefault();
+                var formData = $(this).serialize() + '&add_todo=true';
+                performAjaxAction(formData, function() {
+                    $('#add-todo-form')[0].reset();
+                });
+            });
+
+            // Toggle task
+            $(document).on('click', '.toggle-task', function(e) {
+                e.preventDefault();
+                var taskId = $(this).data('task-id');
+                performAjaxAction({
+                    'task_id': taskId,
+                    'toggle_task': true
+                });
+            });
+
+            // Toggle todo
+            $(document).on('click', '.toggle-todo', function(e) {
+                e.preventDefault();
+                var todoId = $(this).data('todo-id');
+                performAjaxAction({
+                    'todo_id': todoId,
+                    'toggle_todo': true
+                });
+            });
+
+            // Delete todo
+            $(document).on('click', '.delete-todo', function(e) {
+                e.preventDefault();
+                var todoId = $(this).data('todo-id');
+                performAjaxAction({
+                    'todo_id': todoId,
+                    'delete_todo': true
+                });
+            });
+        });
+    </script>
 </head>
 <body>
 
     <div class="container">
-        <!-- Left: Tasks Section -->
-        <div class="tasks-container">
-            <h2 class="section-title">For <span style="color: #FF6600;">You</span></h2>
-            <p>Research and complete each task</p><br>
-            {% for task in tasks %}
-                <div class="task-item {% if task.is_completed %}completed{% endif %}">
-                    <p>{{ task.description }}</p>
-                    <form method="post">
-                        {% csrf_token %}
-                        <input type="hidden" name="task_id" value="{{ task.id }}">
-                        <button type="submit" name="toggle_task">
-                            {% if task.is_completed %}Undo{% else %}Complete{% endif %}
-                        </button>
-                    </form>
-                </div>
-            {% endfor %}
-        </div>
-
-        <!-- Right: Todos Section -->
-        <div class="todos-container">
-            <h2 class="section-title"><span style="color: #FF6600;">personal</span> todo</h2>
-            <form method="post" class="add-todo">
+        <!-- Todos Section -->
+        <div class="todos-container" id="todos-container">
+            <h2 class="section-title"><span style="color: #FF6600;">Today's</span> todo</h2>
+            <p style="color: gray;">what are you going to achive today ?</p><br>
+            <form id="add-todo-form" class="add-todo">
                 {% csrf_token %}
                 <input type="text" name="description" placeholder="Add a new todo" required>
-                <button style="margin-top: 0px;" type="submit" name="add_todo">Add</button>
+                <button style="margin-top: 0px;" type="submit">Add</button>
             </form>
         
             {% if todos %}
@@ -276,18 +366,10 @@
                     <div class="todo-item {% if todo.is_completed %}completed{% endif %}">
                         <p>{{ todo.description }}</p>
                         <div class="todo-actions">
-                            <form method="post" style="display: inline;">
-                                {% csrf_token %}
-                                <input type="hidden" name="todo_id" value="{{ todo.id }}">
-                                <button type="submit" name="toggle_todo">
-                                    {% if todo.is_completed %}Undo{% else %}Complete{% endif %}
-                                </button>
-                            </form>
-                            <form method="post" style="display: inline;">
-                                {% csrf_token %}
-                                <input type="hidden" name="todo_id" value="{{ todo.id }}">
-                                <button type="submit" name="delete_todo">Delete</button>
-                            </form>
+                            <button class="toggle-todo" data-todo-id="{{ todo.id }}">
+                                {% if todo.is_completed %}Undo{% else %}Complete{% endif %}
+                            </button>
+                            <button class="delete-todo" data-todo-id="{{ todo.id }}">Delete</button>
                         </div>
                     </div>
                 {% endfor %}
@@ -297,11 +379,25 @@
                 </div>
             {% endif %}
         </div>
+
+        <!-- Tasks Section -->
+        <div class="tasks-container" id="tasks-container">
+            <h2 class="section-title">For <span style="color: #FF6600;">You</span></h2>
+            <p>Research and complete each task</p><br>
+            {% for task in tasks %}
+                <div class="task-item {% if task.is_completed %}completed{% endif %}">
+                    <p>{{ task.description }}</p>
+                    <button class="toggle-task" data-task-id="{{ task.id }}">
+                        {% if task.is_completed %}Undo{% else %}Complete{% endif %}
+                    </button>
+                </div>
+            {% endfor %}
+        </div>
     </div>
 
     <!-- Modern Paginator -->
     <div class="paginator">
-        <a href="{% url 'chat:module_list' module.startup_plan.id %}" return false;" style="background-color: #FF6600; border: 1px solid black;">
+        <a href="{% url 'chat:module_list' module.startup_plan.id %}" return false;" style="background-color: #000000; border: 1px solid #5b5b5b">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
             </svg>
