@@ -1,168 +1,162 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Startup Modules</title>
     <style>
-        /* Base styles */
+        :root {
+            --primary-color: #FF6600;
+            --text-color: #333;
+            --text-secondary: #666;
+            --background-color: #f4f5f7;
+            --card-background: #fff;
+            --shadow-color: rgba(0, 0, 0, 0.1);
+            --transition-duration: 0.3s;
+        }
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Helvetica Neue', sans-serif;
-            user-select: none;
         }
 
         body {
-            background-color: #f4f5f7;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-            margin-top: 80px;
-            padding-bottom: 60px; /* Ensures body doesn't get hidden under the pagination bar */
+            font-family: 'Inter', 'Helvetica Neue', sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            padding: 5rem 1rem 6rem;
         }
 
         .container {
             max-width: 1200px;
-            padding: 2rem;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
         }
 
         h1 {
-            text-align: center;
-            font-size: 2.5rem;
-            margin-bottom: 2.5rem;
-            letter-spacing: 0.5px;
-            color: #333;
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            letter-spacing: -0.5px;
         }
 
-        p {
-            font-size: 1.2rem;
-            text-align: center;
-            margin-bottom: 2rem;
-            color: #666;
+        h1 span {
+            color: var(--primary-color);
+        }
+
+        .subtitle {
+            font-size: 1.25rem;
+            color: var(--text-secondary);
+        }
+
+        .module-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
         }
 
         .module-card {
-            background: #fff;
-            border-radius: 14px;
+            background: var(--card-background);
+            border-radius: 12px;
             padding: 1.5rem;
-            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 6px var(--shadow-color);
+            transition: transform var(--transition-duration) ease, box-shadow var(--transition-duration) ease;
             cursor: pointer;
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
 
         .module-card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            box-shadow: 0 10px 20px var(--shadow-color);
         }
 
         .module-card h2 {
-            font-size: 20px;
-            color: #444;
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
         }
 
-        .module-card p {
-            font-size: 1.2rem;
-            color: #666;
-        }
-
-        @media (min-width: 768px) {
-            .container {
-                display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-                gap: 2rem;
-            }
-        }
-
-        @media (max-width: 768px) {
-            .container {
-                padding: 1rem;
-            }
-
-            h1 {
-                font-size: 2rem;
-            }
-        }
-
-        /* Pagination bar styles */
         .pagination-bar {
             position: fixed;
             bottom: 0;
             left: 0;
             width: 100%;
-            background-color: #fff;
-            box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.1);
+            background-color: var(--card-background);
+            box-shadow: 0 -4px 10px var(--shadow-color);
+            padding: 1rem 2rem;
             display: flex;
             justify-content: space-between;
-            padding: 1rem 2rem;
-            z-index: 1000;
+            align-items: center;
         }
 
         .pagination-bar a {
             text-decoration: none;
-            font-size: 1.2rem;
-            color: #333;
-            font-weight: bold;
+            color: var(--text-color);
+            font-weight: 600;
             display: flex;
             align-items: center;
-            transition: color 0.3s ease;
+            transition: color var(--transition-duration) ease;
         }
 
         .pagination-bar a:hover {
-            color: #FF6600;
+            color: var(--primary-color);
         }
 
-        .pagination-bar a svg {
-            margin-right: 8px;
-            fill: #333;
-            transition: fill 0.3s ease;
-        }
-
-        .pagination-bar a:hover svg {
-            fill: #FF6600;
-        }
-
-        /* Icons */
-        .home-icon, .back-icon {
+        .pagination-bar svg {
             width: 20px;
             height: 20px;
+            margin-right: 0.5rem;
+            fill: currentColor;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding-top: 3rem;
+            }
+
+            h1 {
+                font-size: 2.5rem;
+            }
+
+            .module-grid {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
-
 <body>
-    <h1><span style="color: #FF6600;">Module's for you</span></h1>
-    <p>Choose one to move forward</p>
-    
     <div class="container">
-        {% for module in modules %}
-        <div class="module-card" onclick="location.href='{% url 'chat:generate_tasks' module.id %}'">
-            <h2>{{ module.title }}</h2>
-        </div>
-        {% endfor %}
+        <header>
+            <h1><span>Module's for you</span></h1>
+            <p class="subtitle">Choose one to move forward</p>
+        </header>
+        
+        <main class="module-grid">
+            {% for module in modules %}
+            <div class="module-card" onclick="location.href='{% url 'chat:generate_tasks' module.id %}'">
+                <h2>{{ module.title }}</h2>
+            </div>
+            {% endfor %}
+        </main>
     </div>
 
-    <!-- Pagination Bar -->
-    <div class="pagination-bar">
+    <nav class="pagination-bar">
         <a href="{% url 'chat:generate_flow' %}">
-            <!-- Back icon -->
-            <svg class="back-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
                 <path d="M15 19l-7-7 7-7"></path>
             </svg>
             Back
         </a>
         <a href="{% url 'chat:home' %}">
-            <!-- Home icon -->
-            <svg class="home-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
                 <path d="M3 12l7-7 7 7v7h-4v-4h-6v4h-4z"></path>
             </svg>
             Home
         </a>
-    </div>
+    </nav>
 </body>
-
 </html>
