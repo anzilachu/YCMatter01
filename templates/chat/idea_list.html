@@ -47,7 +47,7 @@
             padding: 20px;
         }
         .idea-link {
-            color: #3498db;
+            color: #FF6600;
             text-decoration: none;
             font-weight: 600;
             font-size: 1.1rem;
@@ -85,9 +85,6 @@
             border: none;
             font-size: 1rem;
         }
-        .toggle-btn:hover {
-            background-color: #2980b9;
-        }
         .toggle-btn.active {
             background-color: #FF6600;
         }
@@ -105,7 +102,7 @@
             background-color: #f8f9fa;
         }
         .toggle-visibility, .edit-idea-button {
-            background-color: #3498db;
+            background-color: #000000;
             color: white;
             border: none;
             padding: 8px 12px;
@@ -278,7 +275,7 @@
         <div class="modal" id="edit-modal-{{ startup_idea.id }}">
             <div class="modal-content">
                 <span class="close-button" data-id="{{ startup_idea.id }}">&times;</span>
-                <form class="edit-form" method="POST" action="{% url 'chat:update_idea' startup_idea.id %}">
+                <form class="edit-form" data-id="{{ startup_idea.id }}">
                     {% csrf_token %}
                     <h3>Edit Idea</h3>
                     <textarea name="idea" rows="2">{{ startup_idea.idea }}</textarea>
@@ -296,64 +293,199 @@
     <script src="{% static 'main.js' %}"></script>
 
     <script>
-        const privateToggle = document.getElementById('private-toggle');
-        const publicToggle = document.getElementById('public-toggle');
-        const privateIdeas = document.getElementById('private-ideas');
-        const publicIdeas = document.getElementById('public-ideas');
+        // Function to update the idea cards
+        function updateIdeaCards(data) {
+            const privateIdeasGrid = document.querySelector('#private-ideas .idea-grid');
+            const publicIdeasGrid = document.querySelector('#public-ideas .idea-grid');
+            
+            privateIdeasGrid.innerHTML = '';
+            publicIdeasGrid.innerHTML = '';
+            
+            data.forEach(idea => {
+                const card = createIdeaCard(idea);
+                if (idea.is_public) {
+                    publicIdeasGrid.appendChild(card);
+                } else {
+                    privateIdeasGrid.appendChild(card);
+                }
+            });
+        }
 
-        privateToggle.addEventListener('click', () => {
-            privateToggle.classList.add('active');
-            publicToggle.classList.remove('active');
-            privateIdeas.classList.add('active');
-            publicIdeas.classList.remove('active');
-        });
+        // Function to create an idea card
+        function createIdeaCard(idea) {
+            const card = document.createElement('div');
+            card.className = 'idea-card';
+            card.id = `idea-item-${idea.id}`;
+            
+            card.innerHTML = `
+                <div class="idea-content">
+                    <a href="/ideas/${idea.id}/" class="idea-link">
+                        ${idea.idea.length > 100 ? idea.idea.substring(0, 100) + '...' : idea.idea}
+                    </a>
+                    <span class="idea-date">${new Date(idea.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
+                    ${idea.is_public ? `
+                        <a href="/public-ideas/${idea.id}/" class="idea-link">
+                            <span class="idea-comments">Comments: ${idea.comments_count}</span>
+                        </a>
+                        <span class="idea-comments">Upvotes: ${idea.upvotes_count}</span>
+                    ` : ''}
+                </div>
+                <div class="card-actions">
+                    <button class="toggle-visibility" data-id="${idea.id}">
+                        ${idea.is_public ? 'Make Private' : 'Get User Feedback'}
+                    </button>
+                    ${idea.is_public ? `
+                        <button class="edit-idea-button" data-id="${idea.id}">
+                            <i class="ri-edit-line"></i> Edit
+                        </button>
+                    ` : ''}
+                </div>
+            `;
+            
+            return card;
+        }
 
-        publicToggle.addEventListener('click', () => {
-            publicToggle.classList.add('active');
-            privateToggle.classList.remove('active');
-            publicIdeas.classList.add('active');
-            privateIdeas.classList.remove('active');
-        });
+        // Function to toggle idea visibility
+        function toggleIdeaVisibility(ideaId) {
+            fetch(`/toggle_idea_visibility/${ideaId}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken'),
+                    'Content-Type': 'application/json',
+                },
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    fetchAndUpdateIdeas();
+                }
+            });
+        }
 
-        document.querySelectorAll('.toggle-visibility').forEach(button => {
-            button.addEventListener('click', function() {
-                const ideaId = this.getAttribute('data-id');
-                fetch(`/toggle_idea_visibility/${ideaId}/`, {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRFToken': '{{ csrf_token }}',
-                    },
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.status === 'success') {
-                        location.reload(); // Reload the page to reflect changes
+        // Function to edit idea
+        function editIdea(ideaId, newIdea, newDescription) {
+            fetch(`/update_idea/${ideaId}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken'),
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ idea: newIdea, description: newDescription }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    fetchAndUpdateIdeas();
+                    closeModal(ideaId);
+                } else {
+                    console.error('Failed to update idea:', data.message);
+                    alert('Failed to update idea. Please try again.');
+                }
+            })
+            .catch(error => {
+                console.error('Error updating idea:', error);
+                alert('An error occurred while updating the idea. Please try again.');
+            });
+        }
+
+        // Function to fetch and update ideas
+        function fetchAndUpdateIdeas() {
+            fetch('/get_user_ideas/', {
+                method: 'GET',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken'),
+                },
+            })
+            .then(response => response.json())
+            .then(data => {
+                updateIdeaCards(data);
+            });
+        }
+
+        // Function to get CSRF token
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
                     }
+                }
+            }
+            return cookieValue;
+        }
+
+        // Event listeners
+        document.addEventListener('DOMContentLoaded', () => {
+            const privateToggle = document.getElementById('private-toggle');
+            const publicToggle = document.getElementById('public-toggle');
+            const privateIdeas = document.getElementById('private-ideas');
+            const publicIdeas = document.getElementById('public-ideas');
+
+            privateToggle.addEventListener('click', () => {
+                privateToggle.classList.add('active');
+                publicToggle.classList.remove('active');
+                privateIdeas.classList.add('active');
+                publicIdeas.classList.remove('active');
+            });
+
+            publicToggle.addEventListener('click', () => {
+                publicToggle.classList.add('active');
+                privateToggle.classList.remove('active');
+                publicIdeas.classList.add('active');
+                privateIdeas.classList.remove('active');
+            });
+
+            document.addEventListener('click', (event) => {
+                if (event.target.classList.contains('toggle-visibility')) {
+                    const ideaId = event.target.getAttribute('data-id');
+                    toggleIdeaVisibility(ideaId);
+                }
+
+                if (event.target.classList.contains('edit-idea-button')) {
+                    const ideaId = event.target.getAttribute('data-id');
+                    const modal = document.getElementById(`edit-modal-${ideaId}`);
+                    modal.style.display = "block";
+                }
+
+                if (event.target.classList.contains('close-button')) {
+                    const ideaId = event.target.getAttribute('data-id');
+                    closeModal(ideaId);
+                }
+            });
+
+            document.addEventListener('submit', (event) => {
+                if (event.target.classList.contains('edit-form')) {
+                    event.preventDefault();
+                    const form = event.target;
+                    const ideaId = form.getAttribute('data-id');
+                    const newIdea = form.querySelector('textarea[name="idea"]').value;
+                    const newDescription = form.querySelector('textarea[name="description"]').value;
+                    editIdea(ideaId, newIdea, newDescription);
+                }
+            });
+
+            document.querySelectorAll('.edit-form').forEach(form => {
+                form.addEventListener('submit', (event) => {
+                    event.preventDefault();
+                    const ideaId = form.getAttribute('action').split('/').slice(-2, -1)[0];
+                    const newIdea = form.querySelector('textarea[name="idea"]').value;
+                    const newDescription = form.querySelector('textarea[name="description"]').value;
+                    editIdea(ideaId, newIdea, newDescription);
                 });
             });
         });
 
-        document.querySelectorAll('.edit-idea-button').forEach(button => {
-            button.addEventListener('click', function() {
-                const ideaId = this.getAttribute('data-id');
-                const modal = document.getElementById(`edit-modal-${ideaId}`);
-                modal.style.display = "block";
-            });
-        });
-
-        document.querySelectorAll('.close-button').forEach(button => {
-            button.addEventListener('click', function() {
-                const ideaId = this.getAttribute('data-id');
-                const modal = document.getElementById(`edit-modal-${ideaId}`);
-                modal.style.display = "none";
-            });
-        });
-
-        window.onclick = function(event) {
-            if (event.target.className === 'modal') {
-                event.target.style.display = "none";
-            }
+        function closeModal(ideaId) {
+            const modal = document.getElementById(`edit-modal-${ideaId}`);
+            modal.style.display = "none";
         }
+
+        // Initial fetch of ideas
+        fetchAndUpdateIdeas();
     </script>
 
 </body>

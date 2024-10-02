@@ -23,7 +23,7 @@ from django.views import View
 from django.contrib.auth.decorators import login_required
 from django.urls import reverse_lazy
 from dotenv import load_dotenv
-from .models import StartupIdea, User, Payment,Transaction
+from .models import StartupIdea, User, Payment,Transaction, Comment, Notification
 from .models import StartupPlan, Module, Task
 from django.template.loader import render_to_string
 
@@ -154,6 +154,21 @@ def public_idea_detail(request, idea_id):
     else:
         return redirect('chat:idea_list')
 
+@login_required
+def get_user_ideas(request):
+    user_ideas = StartupIdea.objects.filter(user=request.user).order_by('-id')
+    ideas_data = [{
+        'id': idea.id,
+        'idea': idea.idea,
+        'summary': idea.summary,
+        'is_public': idea.is_public,
+        'created_at': idea.created_at.isoformat(),
+        'comments_count': idea.comments.count(),
+        'upvotes_count': idea.upvotes.count()
+    } for idea in user_ideas]
+    return JsonResponse(ideas_data, safe=False)
+
+
 @login_required(login_url=reverse_lazy('chat:sign_in_or_sign_up'))
 def add_comment(request, idea_id):
     if request.method == 'POST':
@@ -183,12 +198,12 @@ def add_comment(request, idea_id):
 
 
 
-@login_required(login_url=reverse_lazy('chat:sign_in_or_sign_up'))
+@login_required
 def toggle_idea_visibility(request, idea_id):
     idea = get_object_or_404(StartupIdea, id=idea_id, user=request.user)
     idea.is_public = not idea.is_public
     idea.save()
-    return JsonResponse({'status': 'success', 'is_public': idea.is_public})
+    return JsonResponse({'status': 'success'})
 
 
 @login_required(login_url=reverse_lazy('chat:sign_in_or_sign_up'))
@@ -264,13 +279,22 @@ def public_idea_list(request):
     })
 from django.http import HttpResponseRedirect
 
+@login_required
+@require_http_methods(["POST"])
 def update_idea(request, idea_id):
-    if request.method == 'POST':
-        idea = get_object_or_404(StartupIdea, id=idea_id)
-        idea.idea = request.POST.get('idea')
-        idea.summary = request.POST.get('description')
+    try:
+        idea = StartupIdea.objects.get(id=idea_id, user=request.user)
+        data = json.loads(request.body)
+        idea.idea = data.get('idea', idea.idea)
+        idea.summary = data.get('description', idea.summary)
         idea.save()
-        return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
+        return JsonResponse({'status': 'success'})
+    except StartupIdea.DoesNotExist:
+        return JsonResponse({'status': 'error', 'message': 'Idea not found'}, status=404)
+    except json.JSONDecodeError:
+        return JsonResponse({'status': 'error', 'message': 'Invalid JSON'}, status=400)
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
 
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404

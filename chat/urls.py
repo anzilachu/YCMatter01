@@ -13,9 +13,13 @@ urlpatterns = [
     path('ideas/<int:idea_id>/', idea_detail, name='idea_detail'),
     path('public-ideas/<int:idea_id>/', public_idea_detail, name='public_idea_detail'),
     path('ideas/<int:idea_id>/make-public/', make_idea_public, name='make_idea_public'),
+
+    path('get_user_ideas/', get_user_ideas, name='get_user_ideas'),
+
     path('ideas/<int:idea_id>/comment/', add_comment, name='add_comment'),
     path('notifications/', notifications, name='notifications'),
     path('update_idea/<int:idea_id>/', update_idea, name='update_idea'),
+    
     path('notification/<int:notification_id>/redirect/', notification_redirect, name='notification_redirect'),
 
     path('get-notification-count/', get_notification_count, name='get_notification_count'),
