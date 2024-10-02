@@ -964,22 +964,38 @@ def generate_flow(request):
         )
 
         client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
-        prompt = f"Given the following startup idea: '{startup_idea}', with description: '{description}' and personal goals: '{personal_goals}', generate 5 personalized module titles for the startup to succeed. List only the short titles in order of priority."
+        prompt = f"""For the startup idea: '{startup_idea}', with description: '{description}' and personal goals: '{personal_goals}', generate 5 inspiring and relevant module titles. Each module should have a very brief description (max 6 words) of what the module is about. Format the response as follows:
+
+1. Inspiring and Relevant Module Title 1
+Brief description of module content (max 6 words)
+
+2. Inspiring and Relevant Module Title 2
+Brief description of module content (max 6 words)
+
+... and so on for all 5 modules. Make each title inspiring and directly related to the startup idea. Ensure descriptions are concise and clear."""
 
         chat_completion = client.chat.completions.create(
             messages=[
                 {"role": "user", "content": prompt},
-                {"role": "system", "content": "Respond with only the 5 module titles, one per line. No introductory text or explanations."}
+                {"role": "system", "content": "Respond with only the 5 inspiring module titles and their brief descriptions, formatted as requested. Ensure each title is relevant to the startup and each description is concise, focusing on the module's core content."}
             ],
             model="llama3-8b-8192",
         )
 
-        module_titles = chat_completion.choices[0].message.content.strip().split('\n')
+        module_data = chat_completion.choices[0].message.content.strip().split('\n\n')
 
-        for i, title in enumerate(module_titles, start=1):
-            cleaned_title = clean_text(title)
-            if cleaned_title:
-                Module.objects.create(startup_plan=startup_plan, title=cleaned_title, order=i)
+        for i, module_info in enumerate(module_data, start=1):
+            lines = module_info.split('\n')
+            if len(lines) >= 2:
+                title = clean_text(lines[0].split('.', 1)[1] if '.' in lines[0] else lines[0])
+                description = clean_text(lines[1])
+                if title and description:
+                    Module.objects.create(
+                        startup_plan=startup_plan,
+                        title=title,
+                        description=description,
+                        order=i
+                    )
 
         return redirect('chat:module_list', plan_id=startup_plan.id)
 

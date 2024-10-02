@@ -112,6 +112,11 @@
             margin-right: 0.5rem;
             fill: currentColor;
         }
+        .module-card p {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+        }
 
         @media (max-width: 768px) {
             body {
@@ -139,6 +144,7 @@
             {% for module in modules %}
             <div class="module-card" onclick="location.href='{% url 'chat:generate_tasks' module.id %}'">
                 <h2>{{ module.title }}</h2>
+                <p>{{ module.description }}</p>
             </div>
             {% endfor %}
         </main>
