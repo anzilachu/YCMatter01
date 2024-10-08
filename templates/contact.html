@@ -17,182 +17,182 @@
 <body>
     {% include 'chat/nav_base.html' %}
     <style>
+        :root {
+            --primary-color: #FF6600;
+            --text-color: #333;
+            --bg-color: #f4f4f4;
+            --card-bg: #ffffff;
+        }
 
-        .container {
-            background: rgba(255, 255, 255, 0.2);
-            padding: 40px;
-            border-radius: 20px;
-            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
-            border: 1px solid rgba(255, 255, 255, 0.18);
-            max-width: 800px;
-            width: 90%;
-            display: block;
-            margin: 0 auto;
-
-        }
-        h1 {
-            font-size: 2.5em;
-            margin-bottom: 20px;
-            font-weight: 700;
-            color: #FF6600;
-        }
-        p {
-            font-size: 1.2em;
-            line-height: 1.6;
-            margin-bottom: 30px;
-        }
-        .contact-form {
-            text-align: left;
-            margin-top: 30px;
-        }
-        .form-group {
-            margin-bottom: 20px;
-        }
-        .form-group label {
-            display: block;
-            font-size: 1.1em;
-            margin-bottom: 5px;
-            font-weight: 600;
-        }
-        .form-group input, .form-group textarea {
-            width: 100%;
-            padding: 10px;
-            border-radius: 8px;
-            border: 1px solid #ddd;
-            font-size: 1em;
+        * {
+            margin: 0;
+            padding: 0;
             box-sizing: border-box;
         }
-        .form-group textarea {
-            height: 120px;
-            resize: none;
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
         }
-        .form-group button {
-            background-color: #FF6600;
-            color: #fff;
+
+        .container {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 3rem;
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+            font-size: 2.5rem;
+        }
+
+        p {
+            margin-bottom: 2rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        input[type="text"],
+        input[type="email"],
+        textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        input[type="text"]:focus,
+        input[type="email"]:focus,
+        textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        button {
+            background-color: var(--primary-color);
+            color: white;
             border: none;
-            padding: 12px 24px;
-            border-radius: 8px;
-            font-size: 1em;
+            padding: 0.75rem 1.5rem;
+            font-size: 1rem;
+            border-radius: 6px;
             cursor: pointer;
-            transition: background-color 0.3s;
+            transition: background-color 0.3s ease;
         }
-        .form-group button:hover {
-            background-color: #FF6600;
+
+        button:hover {
+            background-color: #e65c00;
+        }
+
+        .success-message {
+            color: #28a745;
+            margin-bottom: 1rem;
+        }
+
+        .error-message {
+            color: #dc3545;
+            margin-bottom: 1rem;
+        }
+        .error-message {
+            color: #dc3545;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+        }
+
+        input:invalid, textarea:invalid {
+            border-color: #dc3545;
         }
 
         @media (max-width: 768px) {
             .container {
-            background: rgba(255, 255, 255, 0.2);
-            padding: 40px;
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
+                margin: 1rem;
+                padding: 1.5rem;
+                margin-top: 80px;
+            }
 
-            display: block;
-            margin: 0 auto;
-
-        }
-        .nav__header {
-            margin-top: 0px;
-        }
-        #yc_contact {
-            padding-top: 90px;
-            height: 100vh;
-        }
-        #yc_contact h1{
-            font-size: 1.5rem;
-        }
+            h1 {
+                font-size: 2rem;
+            }
         }
     </style>
-    <section id="yc_contact">
-        <div class="container">
-            <h1>Contact YCLens</h1>
-            <p>Have questions or feedback? Feel free to reach out to us!</p>
-            <div class="contact-form">
-                <form id="contact-form">
-                    <div class="form-group">
-                        <label for="name">Your Name</label>
-                        <input type="text" id="name" name="name" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="email">Your Email</label>
-                        <input type="email" id="email" name="email" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="message">Your Message</label>
-                        <textarea id="message" name="message" required></textarea>
-                    </div>
-                    <div class="form-group">
-                        <button type="submit">Send Message</button>
-                    </div>
-                </form>
-                <p id="form-message" style="display: none;"></p>
+    <div class="container">
+        <h1>Contact YCLens</h1>
+        <p>Have questions or feedback? Feel free to reach out to us!</p>
+
+        {% if success %}
+            <p class="success-message">Your message has been sent successfully!</p>
+        {% endif %}
+
+        {% if error %}
+            <p class="error-message">{{ error }}</p>
+        {% endif %}
+
+        <form method="post" onsubmit="return validateForm()">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="name">Name:</label>
+                <input type="text" id="name" name="name" required>
+                <span class="error-message" id="name-error"></span>
             </div>
-        </div>
-    </section>
+            <div class="form-group">
+                <label for="email">Email:</label>
+                <input type="email" id="email" name="email" required>
+                <span class="error-message" id="email-error"></span>
+            </div>
+            <div class="form-group">
+                <label for="message">Message:</label>
+                <textarea id="message" name="message" required></textarea>
+                <span class="error-message" id="message-error"></span>
+            </div>
+            <button type="submit">Send Message</button>
+        </form>
+    </div>
+
     <script>
-    document.getElementById('contact-form').addEventListener('submit', function(e) {
-        e.preventDefault();
+        function validateForm() {
+            let isValid = true;
+            const name = document.getElementById('name');
+            const email = document.getElementById('email');
+            const message = document.getElementById('message');
 
-        const name = document.getElementById('name').value;
-        const email = document.getElementById('email').value;
-        const message = document.getElementById('message').value;
-        const formMessage = document.getElementById('form-message');
+            const fields = [
+                { element: name, errorId: 'name-error', message: 'Please enter your name.' },
+                { element: email, errorId: 'email-error', message: 'Please enter a valid email address.' },
+                { element: message, errorId: 'message-error', message: 'Please enter a message.' }
+            ];
 
-        fetch('{% url "chat:contact_form" %}', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-                'X-CSRFToken': '{{ csrf_token }}'
-            },
-            body: new URLSearchParams({
-                'name': name,
-                'email': email,
-                'message': message
-            })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                formMessage.style.display = 'block';
-                formMessage.style.color = 'green';
-                formMessage.textContent = 'Your message has been sent successfully!';
-                document.getElementById('contact-form').reset(); // Clear the form fields
-            } else {
-                formMessage.style.display = 'block';
-                formMessage.style.color = 'red';
-                formMessage.textContent = 'Failed to send message. Please try again.';
-            }
-        })
-        .catch(error => {
-            formMessage.style.display = 'block';
-            formMessage.style.color = 'red';
-            formMessage.textContent = 'An error occurred. Please try again.';
-        });
-    });
-    </script>
-      <script>
-        document.addEventListener('DOMContentLoaded', function() {
-        const dropdownToggle = document.querySelector('.dropdown-toggle');
-        const dropdownMenu = document.querySelector('.dropdown-menu');
-
-        dropdownToggle.addEventListener('click', function(e) {
-            e.stopPropagation();
-            this.parentElement.classList.toggle('active');
-        });
-
-        window.addEventListener('click', function() {
-            const dropdowns = document.querySelectorAll('.dropdown');
-            dropdowns.forEach(dropdown => {
-                if (dropdown.classList.contains('active')) {
-                    dropdown.classList.remove('active');
+            fields.forEach(field => {
+                const errorElement = document.getElementById(field.errorId);
+                if (!field.element.value.trim()) {
+                    errorElement.textContent = field.message;
+                    isValid = false;
+                } else {
+                    errorElement.textContent = '';
                 }
             });
-        });
-    });
 
-        </script>
-    <script src="{% static 'main.js' %}"></script>
+            return isValid;
+        }
+    </script>
 </body>
 </html>

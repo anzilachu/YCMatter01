@@ -7,7 +7,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.core.signing import Signer, BadSignature
 from django.contrib.auth import authenticate, login, logout
 from django.views.decorators.csrf import csrf_exempt
-from .forms import SignUpForm, OTPVerificationForm, SignInForm
+from .forms import ContactForm, SignUpForm, OTPVerificationForm, SignInForm
 from .models import Otp, StartupPlan, Task, Todo, User
 import datetime
 from django.core.mail import send_mail
@@ -484,25 +484,31 @@ def clear_interview_context_view(request):
 
 
 def contact(request):
-    return render(request,'contact.html')
+    if request.method == 'POST':
+        form = ContactForm(request.POST)
+        if form.is_valid():
+            name = form.cleaned_data['name']
+            email = form.cleaned_data['email']
+            message = form.cleaned_data['message']
+            
+            if not all([name, email, message]):
+                return render(request, 'contact.html', {'form': form, 'error': 'All fields are required.'})
+            
+            subject = f'Contact Form Submission from {name}'
+            body = f'Name: {name}\nEmail: {email}\n\nMessage:\n{message}'
+            from_email = settings.DEFAULT_FROM_EMAIL
+            recipient_list = [settings.DEFAULT_FROM_EMAIL]
 
-@method_decorator(csrf_exempt, name='dispatch')
-class ContactFormView(View):
-    def post(self, request):
-        name = request.POST.get('name')
-        email = request.POST.get('email')
-        message = request.POST.get('message')
-        
-        if not name or not email or not message:
-            return JsonResponse({'success': False, 'message': 'All fields are required.'})
+            try:
+                send_mail(subject, body, from_email, recipient_list)
+                return render(request, 'contact.html', {'form': ContactForm(), 'success': True})
+            except Exception as e:
+                return render(request, 'contact.html', {'form': form, 'error': str(e)})
+    else:
+        form = ContactForm()
+    
+    return render(request, 'contact.html', {'form': form})
 
-        subject = f'Contact Form Submission from {name}'
-        body = f'Name: {name}\nEmail: {email}\n\nMessage:\n{message}'
-        try:
-            send_mail(subject, body, settings.DEFAULT_FROM_EMAIL, [settings.DEFAULT_FROM_EMAIL])
-            return JsonResponse({'success': True, 'message': 'Your message has been sent successfully!'})
-        except Exception as e:
-            return JsonResponse({'success': False, 'message': str(e)})
 
 def about(request):
     return render(request,'about.html')

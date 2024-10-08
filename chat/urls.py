@@ -65,7 +65,6 @@ urlpatterns = [
     path('about/', about, name='about'),
     
     path('contact/', contact, name='contact'),
-    path('contact-form/', ContactFormView.as_view(), name='contact_form'),
     
 
     path('login/', sign_in_or_sign_up, name='sign_in_or_sign_up'),
