@@ -976,10 +976,9 @@ def clean_text(text):
     cleaned = re.sub(r'^\d+\.\s*', '', cleaned)
     return cleaned.strip().capitalize()
 
-@login_required
+@login_required(login_url=reverse_lazy('chat:sign_in_or_sign_up'))
 def generate_flow(request):
     user_startup_plans = StartupPlan.objects.filter(user=request.user).order_by('-created_at')
-    print(user_startup_plans)
 
     if request.method == 'POST':
         startup_idea = request.POST.get('startup_idea')

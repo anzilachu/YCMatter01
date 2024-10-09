@@ -1,9 +1,12 @@
+{% load static %}
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Generate Startup flow</title>
+    <link rel="icon" href="{% static 'yclogo.png' %}" type="image/png">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap');
 
@@ -219,6 +222,7 @@
     </style>
 </head>
 <body>
+    {% include 'chat/nav_base.html' %}
     <div class="container">
         <div class="form-section">
             <form method="POST" action="{% url 'chat:generate_flow' %}">
@@ -254,15 +258,6 @@
         </div>
     </div>
     
-    <!-- New paginator -->
-    <div class="pagination-bar">
-        <a href="{% url 'chat:home' %}">
-            <!-- Home icon -->
-            <svg class="home-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                <path d="M3 12l7-7 7 7v7h-4v-4h-6v4h-4z"></path>
-            </svg>
-            Home
-        </a>
-    </div>
+
 </body>
 </html>

@@ -10,6 +10,7 @@
     />
     <link rel="stylesheet" href="{% static 'styles.css' %}" />
     <link href="css/fontawesome.min.css" rel="stylesheet" type="text/css" />
+    <link rel="icon" href="{% static 'yclogo.png' %}" type="image/png">
     <title>YCLens | Startup hub</title>
 </head>
 <body>
@@ -180,6 +181,7 @@
     <ul class="nav__links" id="nav-links">
         <li data-page="home"><a href="{% url 'chat:home' %}">Home</a></li>
         <li data-page="about"><a href="{% url 'chat:about' %}">About Us</a></li>
+        <li data-page="plan"><a href="{% url 'chat:generate_flow' %}">Plan</a></li>
         <li data-page="contact"><a href="{% url 'chat:contact' %}">Contact</a></li>
         {% if user.is_authenticated %}
             <li data-page="idea_list"><a href="{% url 'chat:idea_list' %}">My Ideas</a></li>
@@ -200,6 +202,7 @@
             {% endif %}
         </li>
     </ul>
+    
     <div class="nav__btns nav__btns-auth">
         {% if user.is_authenticated %}
             <div class="dropdown">
@@ -311,7 +314,8 @@
         const navItems = document.querySelectorAll('.nav__links li, .mobile-nav__item');
         
         navItems.forEach(item => {
-            if (item.dataset.page === currentPage) {
+            if (item.dataset.page === currentPage || 
+                (item.dataset.page === 'plan' && currentPage === 'generate_flow')) {
                 item.classList.add('active');
             } else {
                 item.classList.remove('active');
