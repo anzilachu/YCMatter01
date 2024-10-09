@@ -229,10 +229,16 @@
                 <span>My Ideas</span>
             </a>
         </li>
+        <li class="mobile-nav__item" data-page="plan">
+            <a href="{% url 'chat:generate_flow' %}" class="mobile-nav__link">
+                <i class="ri-magic-line mobile-nav__icon"></i>
+                <span>Plan</span>
+            </a>
+        </li>
         <li class="mobile-nav__item" data-page="notifications">
             <a href="{% url 'chat:notifications' %}" class="mobile-nav__link">
                 <i class="ri-notification-3-line mobile-nav__icon"></i>
-                <span>Notifications</span>
+                <span>Notify</span>
             </a>
             {% if unread_notifications_count > 0 %}
                 <span class="mobile-nav__badge">{{ unread_notifications_count }}</span>
@@ -242,7 +248,7 @@
             {% if user.is_authenticated %}
                 <a href="#" class="mobile-nav__link" onclick="showLogoutPopup()">
                     <i class="ri-user-line mobile-nav__icon"></i>
-                    <span>{{ user.username }}</span>
+                    <span>Logout</span>
                 </a>
             {% else %}
                 <a href="{% url 'chat:sign_in_or_sign_up' %}" class="mobile-nav__link">
@@ -251,7 +257,7 @@
                 </a>
             {% endif %}
         </li>
-    </ul>
+    </ul>    
 </div>
 
 <!-- Logout Popup -->
